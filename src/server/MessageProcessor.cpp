@@ -254,31 +254,17 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     OTASCIIArmor ascMessage;
     ascMessage.MemSet(messageString.data(), messageString.size());
 
-    OTEnvelope envelope;
-    if (!envelope.SetAsciiArmoredData(ascMessage)) {
-        Log::vError("Error retrieving envelope.\n");
-        return true;
-    }
-
-    // Now the base64 is decoded and the envelope is in binary form again.
-    Log::vOutput(2, "Successfully retrieved envelope from message.\n");
-
-    // Decrypt the Envelope.
-    String envelopeContents;
-    if (!envelope.Open(server_->GetServerNym(), envelopeContents)) {
-        Log::vError("Unable to open envelope.\n");
-        return true;
-    }
-
+    String messageContents;
+    ascMessage.GetString(messageContents);
     // All decrypted--now let's load the results into an OTMessage.
     // No need to call message.ParseRawFile() after, since
     // LoadContractFromString handles it.
     Message message;
-    if (!envelopeContents.Exists() ||
-        !message.LoadContractFromString(envelopeContents)) {
-        Log::vError("Error loading message from envelope "
+    if (!messageContents.Exists() ||
+        !message.LoadContractFromString(messageContents)) {
+        Log::vError("Error loading message from message "
                     "contents:\n\n%s\n\n",
-                    envelopeContents.Get());
+                    messageContents.Get());
         return true;
     }
 
