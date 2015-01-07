@@ -135,6 +135,7 @@
 
 #include <memory>
 #include <string>
+#include <opentxs/core/String.hpp>
 
 // forward declare zsock_t
 typedef struct _zsock_t zsock_t;
