@@ -40,6 +40,7 @@
 
 #include <opentxs/core/script/OTBylaw.hpp>
 
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/script/OTClause.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>

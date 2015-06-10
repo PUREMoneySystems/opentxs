@@ -51,10 +51,20 @@ class Nym;
 class String;
 class Tag;
 
+class OTBylaw;
+class OTClause;
+class OTScript;
+class OTVariable;
+
+typedef std::map<std::string, OTBylaw*> mapOfBylaws;
+typedef std::map<std::string, OTClause*> mapOfClauses;
+typedef std::map<std::string, OTVariable*> mapOfVariables;
+
 class AssetContract : public Contract
 {
 public:
     EXPORT AssetContract();
+    EXPORT AssetContract(String& unsignedXML);
     EXPORT AssetContract(const String& name, const String& foldername,
                          const String& filename, const String& strID);
     EXPORT virtual ~AssetContract();
@@ -148,11 +158,50 @@ public:
     EXPORT virtual bool SaveContractWallet(Tag& parent) const;
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
 
+    int32_t GetBylawCount() const { return static_cast<int32_t> (m_mapBylaws.size()); }
+    virtual bool AddBylaw(OTBylaw & theBylaw); // takes ownership.
+    EXPORT OTBylaw * GetBylaw(std::string str_bylaw_name ) const;
+    EXPORT OTClause * GetClause(std::string str_clause_name) const;
+    EXPORT OTBylaw * GetBylawByIndex(int32_t nIndex) const;
+    OTVariable * GetVariable(const std::string str_VarName); // See if a variable exists for a given variable name.
+
+    //EXPORT void ExecuteClauses(mapOfClauses& theClauses, String* pParam = nullptr);
+    bool ExecuteClause (OTClause& theCallbackClause, mapOfVariables& theParameters, OTVariable& varReturnVal);
+
+    EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
+    // ----------------
+    EXPORT virtual bool Compare(AssetContract& rhs) const;
+    // ----------------
+    EXPORT static AssetContract * InstantiateAssetContract(const String& strInput);
+
+    static bool is_ot_namechar_invalid(char c) ;
+    static bool ValidateName(const std::string str_name);
+    // For use from inside server-side scripts.
+    static std::string GetTime(); // Returns a string, containing seconds as int32_t. (Time in seconds.)
+    static std::string GetPi(); // Returns a string, containing Pi
+    static std::string GetSine(const std::string angleRadians); // Returns a string, containing the sine value for the given angle in radians
+    static std::string GetCosine(const std::string angleRadians); // Returns a string, containing the cosine value for the given angle in radians
+    static std::string GetArcsine(const std::string angleRadians); // Returns a string, containing the arcsine value for the given angle in radians
+    static std::string GetSquareRoot(const std::string value); // Returns a string, containing the square root of the supplied value
+    static std::string GetExponential(const std::string value); // Returns a string, containing the exponental of the supplied value
+    static std::string GetNaturalLogarithm(const std::string value); // Returns a string, containing the natural logarithm of the supplied value
+
+    virtual void Release();
+    void Release_Script();
+
+
+
+
+
+
+
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-protected:
+protected:    
+    mapOfBylaws m_mapBylaws;   // The Bylaws for this contract.
+
     // baskets
     String m_strBasketInfo;
 

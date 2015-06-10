@@ -46,6 +46,7 @@ namespace opentxs
 
 class OTClause;
 class OTScriptable;
+class Contract; //FIXME - This is a HACK because AssetContract is not inheriting from OTScriptable...it is inheriting from Contract
 class Tag;
 
 typedef std::map<std::string, std::string> mapOfCallbacks;
@@ -78,8 +79,9 @@ class OTBylaw
     mapOfCallbacks m_mapCallbacks; // map of standard callbacks associated with
                                    // script clauses. string / string
 
-    OTScriptable* m_pOwnerAgreement; // This Bylaw is owned by an agreement
-                                     // (OTScriptable-derived.)
+    //FIXME - This is a HACK because AssetContract is not inheriting from OTScriptable...it is inheriting from Contract
+    //OTScriptable* m_pOwnerAgreement; // This Bylaw is owned by an agreement (OTScriptable-derived.)
+    Contract* m_pOwnerAgreement; // This Bylaw is owned by an agreement (Contract-derived.)
 public:
     EXPORT const String& GetName() const
     {
@@ -162,16 +164,16 @@ public:
     EXPORT void SetAsClean(); // Sets the variables as clean, so you can check
                               // later and see if any have been changed (if it's
                               // DIRTY again.)
+
+    //FIXME - This is a HACK because AssetContract is not inheriting from OTScriptable...it is inheriting from Contract
     // This pointer isn't owned -- just stored for convenience.
     //
-    EXPORT OTScriptable* GetOwnerAgreement()
-    {
-        return m_pOwnerAgreement;
-    }
-    EXPORT void SetOwnerAgreement(OTScriptable& theOwner)
-    {
-        m_pOwnerAgreement = &theOwner;
-    }
+    //EXPORT OTScriptable* GetOwnerAgreement(){return m_pOwnerAgreement;}
+    //EXPORT void SetOwnerAgreement(OTScriptable& theOwner){m_pOwnerAgreement = &theOwner;}
+    EXPORT Contract* GetOwnerAgreement(){return m_pOwnerAgreement;}
+    EXPORT void SetOwnerAgreement(Contract& theOwner){m_pOwnerAgreement = &theOwner;}
+    //FIXME - This is a HACK because AssetContract is not inheriting from OTScriptable...it is inheriting from Contract
+
     EXPORT OTBylaw();
     EXPORT OTBylaw(const char* szName, const char* szLanguage);
     virtual ~OTBylaw();

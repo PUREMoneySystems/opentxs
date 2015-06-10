@@ -151,7 +151,8 @@ void Contract::Initialize()
     // make sure subclasses set this in their own initialization routine.
 
     m_strSigHashType = Identifier::DefaultHashAlgorithm;
-    m_strVersion = "2.0"; // since new credentials system.
+    //m_strVersion = "2.0"; // since new credentials system.
+    m_strVersion = "2.1"; // since making AssetContract's scriptable.
 }
 
 // The name, filename, version, and ID loaded by the wallet

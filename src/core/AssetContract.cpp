@@ -46,7 +46,20 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/Tag.hpp>
 
+#include <opentxs/core/script/OTBylaw.hpp>
+#include <opentxs/core/script/OTClause.hpp>
+
 #include <irrxml/irrXML.hpp>
+
+#ifdef OT_USE_SCRIPT_CHAI
+#   include <opentxs/core/script/OTScriptChai.hpp>
+#   include <chaiscript/chaiscript.hpp>
+#   ifdef OT_USE_CHAI_STDLIB
+#       include <chaiscript/chaiscript_stdlib.hpp>
+#   endif
+#else
+#   include <opentxs/core/script/OTScript.hpp>
+#endif
 
 #include <sstream>
 #include <fstream>
@@ -409,6 +422,14 @@ AssetContract::AssetContract()
 {
 }
 
+AssetContract::AssetContract(String& unsignedXML)
+    : Contract()
+    , m_bIsCurrency(true)
+    , m_bIsShares(false){
+    m_xmlUnsigned.Set(unsignedXML);
+    LoadContractXML();
+}
+
 AssetContract::AssetContract(const String& name, const String& foldername,
                              const String& filename, const String& strID)
     : Contract(name, foldername, filename, strID)
@@ -417,9 +438,27 @@ AssetContract::AssetContract(const String& name, const String& foldername,
 {
 }
 
-AssetContract::~AssetContract()
-{
+AssetContract::~AssetContract(){
+    Release_Script();
 }
+
+// Go through the existing list of bylaws at this point, and delete them all.
+void AssetContract::Release_Script() {
+    while (!m_mapBylaws.empty()){
+        OTBylaw * pBylaw = m_mapBylaws.begin()->second;
+        OT_ASSERT(NULL != pBylaw);
+
+        m_mapBylaws.erase(m_mapBylaws.begin());
+        delete pBylaw;
+        pBylaw = NULL;
+    }
+}
+
+void AssetContract::Release() {
+    Release_Script();
+    Contract::Release(); // since I've overridden the base class, I call it now...
+}
+
 
 bool AssetContract::DisplayStatistics(String& strContents) const
 {
@@ -560,15 +599,8 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     return true;
 }
 
-bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
-                                                                      // the
-// account
-// to the
-// list.
-// (When
-// account
-// is
-// created.)
+// Adds the account to the list. (When account is created.)
+bool AssetContract::AddAccountRecord(const Account& theAccount) const
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Add it otherwise.
@@ -679,9 +711,8 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     return true;
 }
 
-bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
-    const // removes the account from the list. (When
-          // account is deleted.)
+// Removes the account from the list. (When account is deleted.)
+bool AssetContract::EraseAccountRecord(const Identifier& theAcctID) const
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Erase it, if it is.
@@ -806,6 +837,22 @@ void AssetContract::CreateContents()
         tag.add_tag(pTag);
     }
 
+    //Add any scripted bylaws to the asset contract
+    if (!m_mapBylaws.empty()) {
+        TagPtr pTag(new Tag("scriptableContract"));
+
+        uint32_t sizeBylawMap = m_mapBylaws.size();
+        pTag->add_attribute("numBylaws", formatUint(sizeBylawMap));
+
+        for (auto& it : m_mapBylaws) {
+            OTBylaw* pBylaw = it.second;
+            OT_ASSERT(nullptr != pBylaw);
+            pBylaw->Serialize(*pTag, false);
+        }
+
+        tag.add_tag(pTag);
+    }
+
     // This is where OTContract scribes tag with its keys,
     // conditions, etc.
     CreateInnerContents(tag);
@@ -820,6 +867,7 @@ void AssetContract::CreateContents()
 //
 int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 {
+    const char* szFunc = "AssetContract::ProcessXMLNode";
     int32_t nReturnVal = Contract::ProcessXMLNode(xml);
 
     // Here we call the parent class first.
@@ -908,9 +956,526 @@ int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
                   "Type: " << m_strCurrencyType
                << ", Issue Date: " << m_strIssueDate << "\n----------\n";
         nReturnVal = 1;
+    } else if (strNodeName.Compare("scriptableContract")) {
+        // Load up the Bylaws.
+        String strNumBylaws = xml->getAttributeValue("numBylaws");
+        int32_t nBylawCount = strNumBylaws.Exists() ? atoi(strNumBylaws.Get()) : 0;
+        if (nBylawCount > 0) {
+            while (nBylawCount-- > 0) {
+                if (!SkipToElement(xml)) {
+                    otOut << szFunc << ": Failure: Unable to find expected element for bylaw. \n";
+                    return (-1);
+                }
+
+                if (!strcmp("bylaw", xml->getNodeName())) {
+                    String strName = xml->getAttributeValue("name"); // bylaw name
+                    String strLanguage = xml->getAttributeValue("language"); // The script language used in this bylaw.
+
+                    String strNumVariable = xml->getAttributeValue("numVariables"); // number of variables on this bylaw.
+                    String strNumClauses = xml->getAttributeValue("numClauses"); // number of clauses on this bylaw.
+
+                    OTBylaw* pBylaw = new OTBylaw(strName.Get(), strLanguage.Get());
+
+                    OT_ASSERT(nullptr != pBylaw);
+
+                    // LOAD VARIABLES AND CONSTANTS.
+                    int32_t nCount = strNumVariable.Exists() ? atoi(strNumVariable.Get()) : 0;
+                    if (nCount > 0) {
+                        while (nCount-- > 0) {
+                            if (!Contract::SkipToElement(xml)) {
+                                otErr << szFunc << ": Error finding expected next element for variable.\n";
+                                delete pBylaw;
+                                pBylaw = nullptr;
+                                return (-1);
+                            }
+
+                            if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("variable", xml->getNodeName()))) {
+                                String strVarName = xml->getAttributeValue("name"); // Variable name (if needed in script code)
+                                String strVarValue = xml->getAttributeValue("value"); // Value stored in variable (If this is "true" then a real value is expected in a text field below. Otherwise, it's assumed to be a BLANK STRING.)
+                                String strVarType = xml->getAttributeValue("type"); // string or int64_t
+                                String strVarAccess = xml->getAttributeValue("access"); // constant, persistent, or important.
+
+                                if (!strVarName.Exists() || !strVarType.Exists() || !strVarAccess.Exists()) {
+                                    otErr << szFunc << ": Expected missing name, type, or access type in variable.\n";
+                                    delete pBylaw;
+                                    pBylaw = nullptr;
+                                    return (-1);
+                                }
+
+                                // See if the same-named variable already exists on ANY of the OTHER BYLAWS (There can only be one variable on an OTScriptable with a given name.)
+                                OTVariable* pVar = GetVariable(strVarName.Get());
+                                if (nullptr !=  pVar){ // Uh-oh, it's already there!
+                                    otOut << szFunc << ": Error loading variable named " << strVarName << ", since one was already there on one of the bylaws.\n";
+                                    delete pBylaw;
+                                    pBylaw = nullptr;
+                                    return (-1);
+                                }
+                                // The AddVariable call below checks to see if
+                                // it's already there, but only for the
+                                // currently-loading bylaw.
+                                // Whereas the above call checks this
+                                // OTScriptable for all the variables on the
+                                // already-loaded bylaws.
+
+                                // VARIABLE TYPE AND ACCESS TYPE
+                                OTVariable::OTVariable_Type theVarType = OTVariable::Var_Error_Type;
+
+                                if (strVarType.Compare("integer"))
+                                    theVarType = OTVariable::Var_Integer;
+                                else if (strVarType.Compare("string"))
+                                    theVarType = OTVariable::Var_String;
+                                else if (strVarType.Compare("bool"))
+                                    theVarType = OTVariable::Var_Bool;
+                                else
+                                    otErr << szFunc << ": Bad variable type: " << strVarType << ".\n";
+
+                                OTVariable::OTVariable_Access theVarAccess = OTVariable::Var_Error_Access;
+
+                                if (strVarAccess.Compare("constant"))
+                                    theVarAccess = OTVariable::Var_Constant;
+                                else if (strVarAccess.Compare("persistent"))
+                                    theVarAccess = OTVariable::Var_Persistent;
+                                else if (strVarAccess.Compare("important"))
+                                    theVarAccess = OTVariable::Var_Important;
+                                else
+                                    otErr << szFunc << ": Bad variable access type: " << strVarAccess << ".\n";
+
+                                if ((OTVariable::Var_Error_Access == theVarAccess) || (OTVariable::Var_Error_Type == theVarType)) {
+                                    otErr << szFunc << ": Error loading variable to bylaw: bad type (" << strVarType << ") or access type (" << strVarAccess << ").\n";
+                                    delete pBylaw;
+                                    pBylaw = nullptr;
+                                    return (-1);
+                                }
+
+                                bool bAddedVar = false;
+                                const std::string str_var_name = strVarName.Get();
+
+                                switch (theVarType) {
+                                    case OTVariable::Var_Integer:
+                                        if (strVarValue.Exists()) {
+                                            const int32_t nVarValue = atoi(strVarValue.Get());
+                                            bAddedVar = pBylaw->AddVariable(str_var_name, nVarValue, theVarAccess);
+                                        } else {
+                                            otErr << szFunc << ": No value found for integer variable: " << strVarName << "\n";
+                                            delete pBylaw;
+                                            pBylaw = nullptr;
+                                            return (-1);
+                                        }
+                                        break;
+                                    case OTVariable::Var_Bool:
+                                        if (strVarValue.Exists()) {
+                                            const bool bVarValue = strVarValue.Compare("true") ? true : false;
+                                            bAddedVar = pBylaw->AddVariable(str_var_name, bVarValue, theVarAccess);
+                                        } else {
+                                            otErr << szFunc << ": No value found for bool variable: " << strVarName << "\n";
+                                            delete pBylaw;
+                                            pBylaw = nullptr;
+                                            return (-1);
+                                        }
+                                        break;
+                                    case OTVariable::Var_String:{
+                                        // I realized I should probably allow empty strings.  :-P
+                                        if (strVarValue.Exists() && strVarValue.Compare("exists")) {
+                                            strVarValue.Release(); // probably unnecessary.
+                                            if (false == Contract::LoadEncodedTextField(xml, strVarValue)) {
+                                                otErr << szFunc << ": No value found for string variable: " << strVarName << "\n";
+                                                delete pBylaw;
+                                                pBylaw = nullptr;
+                                                return (-1);
+                                            }
+                                        } else {
+                                            strVarValue.Release(); // Necessary. If it's going to be a blank string, then let's make sure.
+                                        }
+
+                                        const std::string str_var_value = strVarValue.Get();
+                                        bAddedVar = pBylaw->AddVariable(str_var_name, str_var_value, theVarAccess);
+                                        } break;
+                                    default:
+                                        otErr << szFunc << ": Wrong variable type... somehow AFTER I should have already detected it...\n";
+                                        delete pBylaw;
+                                        pBylaw = nullptr;
+                                        return (-1);
+                                }
+
+                                if (!bAddedVar) {
+                                    otErr << szFunc << ": Failed adding variable to bylaw.\n";
+                                    delete pBylaw;
+                                    pBylaw = nullptr;
+                                    return (-1);
+                                }
+                            } else {
+                                otErr << szFunc << ": Expected variable element in bylaw.\n";
+                                delete pBylaw;
+                                pBylaw = nullptr;
+                                return (-1); // error condition
+                            }
+                        }
+                    }
+
+                    // LOAD CLAUSES
+                    nCount = strNumClauses.Exists() ? atoi(strNumClauses.Get()) : 0;
+                    if (nCount > 0) {
+                        while (nCount-- > 0) {
+                            const char* pElementExpected = "clause";
+                            String strTextExpected; // clause's script code will go here.
+
+                            String::Map temp_MapAttributes;
+                            // This map contains values we will also want, when we read the clause... (The OTContract::LoadEncodedTextField call below will read all the values as specified in this map.)
+                            temp_MapAttributes.insert(std::pair<std::string, std::string>("name", ""));
+                            if (!Contract::LoadEncodedTextFieldByName(xml, strTextExpected, pElementExpected, &temp_MapAttributes)){ // </clause>
+                                otErr << szFunc << ": Error: Expected " << pElementExpected << " element with text field.\n";
+                                delete pBylaw;
+                                pBylaw = nullptr;
+                                return (-1); // error condition
+                            }
+
+                            // Okay we now have the script code in strTextExpected. Next, let's read the clause's NAME from the map. If it's there, and presumably some kind of harsh validation for both, then create a clause object and add to my list here.
+                            auto it = temp_MapAttributes.find("name");
+
+                            if ((it != temp_MapAttributes.end())){ // We expected this much.
+                                std::string& str_name = it->second;
+
+                                if (str_name.size() > 0){ // SUCCESS
+                                    // See if the same-named clause already exists on ANY of the OTHER BYLAWS (There can only be one clause on an OTScriptable with a given name.)
+                                    OTClause* pClause = GetClause(str_name.c_str());
+
+                                    if (nullptr != pClause){ // Uh-oh, it's already there!
+                                        otOut << szFunc << ": Error loading clause named " << str_name << ", since one was already there on one of the bylaws.\n";
+                                        delete pBylaw;
+                                        pBylaw = nullptr;
+                                        return (-1);
+                                    } else if (false == pBylaw->AddClause(str_name.c_str(), strTextExpected.Get())) {
+                                        otErr << szFunc << ": Failed adding clause to bylaw.\n";
+                                        delete pBylaw;
+                                        pBylaw = nullptr;
+                                        return (-1); // error condition
+                                    }
+                                } else {
+                                    // else it's empty, which is expected if nothing was there, since that's the default value that we set above for "name" in temp_MapAttributes.
+                                    otErr << szFunc << ": Expected clause name.\n";
+                                    delete pBylaw;
+                                    pBylaw = nullptr;
+                                    return (-1); // error condition
+                                }
+                            } else {
+                                otErr << szFunc << ": Strange error: couldn't find name AT ALL.\n";
+                                delete pBylaw;
+                                pBylaw = nullptr;
+                                return (-1); // error condition
+                            }
+                        }
+                    }
+
+                    if (AddBylaw(*pBylaw)) {
+                        otInfo << szFunc << ": Loaded Bylaw: " << pBylaw->GetName() << "\n";
+                    } else {
+                        otErr << szFunc << ": Failed loading Bylaw: " << pBylaw->GetName() << "\n";
+                        delete pBylaw;
+                        pBylaw = nullptr;
+                        return (-1); // error condition
+                    }
+                } else {
+                    otErr << szFunc << ": Expected bylaw element.\n";
+                    return (-1); // error condition
+                }
+            }
+        }
     }
 
     return nReturnVal;
 }
+
+
+
+OTBylaw* AssetContract::GetBylaw(std::string str_bylaw_name) const {
+    if (!AssetContract::ValidateName(str_bylaw_name)){ // this logs, FYI.
+        otErr << __FUNCTION__ << ": Error: invalid name.\n";
+        return nullptr;
+    }
+
+    auto it = m_mapBylaws.find(str_bylaw_name);
+    if (m_mapBylaws.end() == it){ // Did NOT find it.
+        return nullptr;
+    }
+
+    OTBylaw* pBylaw = it->second;
+    OT_ASSERT(nullptr != pBylaw);
+
+    return pBylaw;
+}
+
+OTBylaw* AssetContract::GetBylawByIndex(int32_t nIndex) const {
+    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapBylaws.size()))) {
+        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
+    } else {
+        int32_t nLoopIndex = -1; // will be 0 on first iteration.
+
+        for (auto& it : m_mapBylaws) {
+            OTBylaw* pBylaw = it.second;
+            OT_ASSERT(nullptr != pBylaw);
+
+            ++nLoopIndex; // 0 on first iteration.
+
+            if (nLoopIndex == nIndex) return pBylaw;
+        }
+    }
+    return nullptr;
+}
+
+
+// Look up the first (and hopefully only) variable registered for a given name.
+// (Across all of my Bylaws)
+OTVariable* AssetContract::GetVariable(std::string str_VarName){
+    if (!AssetContract::ValidateName(str_VarName)){ // this logs, FYI.
+        otErr << "AssetContract::GetVariable:  Error: invalid name.\n";
+        return nullptr;
+    }
+
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
+        OT_ASSERT(nullptr != pBylaw);
+
+        OTVariable* pVar = pBylaw->GetVariable(str_VarName);
+
+        if (nullptr != pVar) // found it.
+            return pVar;
+    }
+
+    return nullptr;
+}
+
+// Find the first (and hopefully the only) clause on this scriptable object,
+// with a given name. (Searches ALL Bylaws on *this.)
+OTClause* AssetContract::GetClause(std::string str_clause_name) const {
+    if (!AssetContract::ValidateName(str_clause_name)){ // this logs, FYI.
+        otErr << __FUNCTION__ << ": Error: invalid name.\n";
+        return nullptr;
+    }
+
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
+        OT_ASSERT(nullptr != pBylaw);
+
+        OTClause* pClause = pBylaw->GetClause(str_clause_name);
+
+        if (nullptr != pClause) // found it.
+            return pClause;
+    }
+
+    return nullptr;
+}
+
+
+bool AssetContract::AddBylaw(OTBylaw& theBylaw){
+    const std::string str_name = theBylaw.GetName().Get();
+
+    if (!AssetContract::ValidateName(str_name)) { // this logs, FYI.
+        otErr << "AssetContract::AddBylaw:  Error: invalid name.\n";
+        return false;
+    }
+
+    if (m_mapBylaws.find(str_name) == m_mapBylaws.end()) {
+        // Careful:  This ** DOES ** TAKE OWNERSHIP!  theBylaw will get deleted
+        // when this AssetContract is.
+        m_mapBylaws.insert(std::pair<std::string, OTBylaw*>(str_name, &theBylaw));
+        theBylaw.SetOwnerAgreement(*this);
+        return true;
+    } else {
+        otOut << "AssetContract::AddBylaw: Failed attempt: bylaw already exists on contract.\n ";
+    }
+
+    return false;
+}
+
+
+bool AssetContract::Compare(AssetContract& rhs) const {
+    const char* szFunc = "AssetContract::Compare";
+
+    if (GetBylawCount() != rhs.GetBylawCount()) {
+        otOut << szFunc << ": The number of bylaws does not match.\n";
+        return false;
+    }
+
+    for (const auto& it : m_mapBylaws) {
+        const std::string str_bylaw_name = it.first;
+        OTBylaw* pBylaw = it.second;
+        OT_ASSERT(nullptr != pBylaw);
+
+        OTBylaw* p2 = rhs.GetBylaw(str_bylaw_name);
+
+        if (nullptr == p2) {
+            otOut << szFunc << ": Unable to find bylaw " << str_bylaw_name << " on rhs.\n";
+            return false;
+        } else if (!pBylaw->Compare(*p2)) {
+            otOut << szFunc << ": Bylaws don't match: " << str_bylaw_name << ".\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+// VALIDATING IDENTIFIERS IN ASSETCONTRACT.
+// Only alphanumerics are valid, or '_' (underscore)
+bool AssetContract::is_ot_namechar_invalid(char c){
+    return !(isalnum(c) || (c == '_'));
+}
+
+// static
+bool AssetContract::ValidateName(std::string str_name){
+    if (str_name.size() <= 0) {
+        otErr << "AssetContract::ValidateName: Name has zero size.\n";
+        return false;
+    } else if (find_if(str_name.begin(), str_name.end(), is_ot_namechar_invalid) != str_name.end()) {
+        otErr << "OTScriptable::ValidateName: Name fails validation testing: " << str_name << "\n";
+        return false;
+    }
+
+    return true;
+}
+
+void AssetContract::RegisterOTNativeCallsWithScript(ANDROID_UNUSED OTScript& theScript){
+#ifdef OT_USE_SCRIPT_CHAI
+    using namespace chaiscript;
+
+    // In the future, this will be polymorphic.
+    // But for now, I'm forcing things...
+
+    OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
+
+    if (nullptr != pScript) {
+        OT_ASSERT(nullptr != pScript->chai)
+
+        pScript->chai->add(fun(&AssetContract::GetTime), "get_time");
+        pScript->chai->add(fun(&AssetContract::GetPi), "get_pi");
+        pScript->chai->add(fun(&AssetContract::GetSine), "sin");
+        pScript->chai->add(fun(&AssetContract::GetCosine), "cos");
+        pScript->chai->add(fun(&AssetContract::GetArcsine), "asin");
+        pScript->chai->add(fun(&AssetContract::GetSquareRoot), "sqrt");
+        pScript->chai->add(fun(&AssetContract::GetExponential), "exp");
+        pScript->chai->add(fun(&AssetContract::GetNaturalLogarithm), "ln");
+    } else
+#endif // OT_USE_SCRIPT_CHAI
+    {
+        otErr << "OTScriptable::RegisterOTNativeCallsWithScript: Failed dynamic casting OTScript to OTScriptChai \n";
+    }
+}
+
+
+// Returns a string, containing seconds as int32_t. (Time in seconds.)
+std::string AssetContract::GetTime(){
+    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
+    String strTime;
+    strTime.Format("%" PRId64, lTime);
+    return	strTime.Get();
+}
+// Returns a string, containing Pi
+std::string AssetContract::GetPi(){
+    String strPi;
+    strPi.Format("%F", M_PI);
+    return strPi.Get();
+}
+// Returns a string, containing the sine value for the given angle in radians
+std::string AssetContract::GetSine(const std::string angleRadians){
+    double angleRadiansValue = atof(angleRadians.c_str());
+    double result = sin(angleRadiansValue);
+    String strSine;
+    strSine.Format("%F", result);
+    return strSine.Get();
+}
+// Returns a string, containing the cosine value for the given angle in radians
+std::string AssetContract::GetCosine(const std::string angleRadians){
+    double angleRadiansValue = atof(angleRadians.c_str());
+    double result = cos(angleRadiansValue);
+    String strCosine;
+    strCosine.Format("%F", result);
+    return strCosine.Get();
+}
+// Returns a string, containing the arcsine value for the given angle in radians
+std::string AssetContract::GetArcsine(const std::string angleRadians){
+    double angleRadiansValue = atof(angleRadians.c_str());
+    double result = asin(angleRadiansValue);
+    String strArcsine;
+    strArcsine.Format("%F", result);
+    return strArcsine.Get();
+}
+// Returns a string, containing the square root of the supplied value
+std::string AssetContract::GetSquareRoot(const std::string value){
+    double valueAsDouble = atof(value.c_str());
+    double result = sqrt(valueAsDouble);
+    String strSquareRoot;
+    strSquareRoot.Format("%F", result);
+    return strSquareRoot.Get();
+}
+// Returns a string, containing the exponential of the supplied value
+std::string AssetContract::GetExponential(const std::string value){
+    double valueAsDouble = atof(value.c_str());
+    double result = exp(valueAsDouble);
+    String strExponential;
+    strExponential.Format("%F", result);
+    return strExponential.Get();
+}
+// Returns a string, containing the natural logarithm of the supplied value
+std::string AssetContract::GetNaturalLogarithm(const std::string value){
+    double valueAsDouble = atof(value.c_str());
+    double result = log(valueAsDouble);
+    String strNaturalLogarithm;
+    strNaturalLogarithm.Format("%F", result);
+    return strNaturalLogarithm.Get();
+}
+
+
+bool AssetContract::ExecuteClause(OTClause & theCallbackClause, mapOfVariables & theParameters, OTVariable & varReturnVal){
+    const std::string str_clause_name = theCallbackClause.GetName().Exists() ? theCallbackClause.GetName().Get() : "";
+    OT_ASSERT(AssetContract::ValidateName(str_clause_name));
+
+    OTBylaw* pBylaw = theCallbackClause.GetBylaw();
+    OT_ASSERT(nullptr != pBylaw);
+
+    // By this point, we have the clause we are executing as theCallbackClause,
+    // and we have the Bylaw it belongs to, as pBylaw.
+    const std::string str_code = theCallbackClause.GetCode(); // source code for the script.
+    const std::string str_language = pBylaw->GetLanguage(); // language it's in. (Default is "chai")
+
+    std::shared_ptr<OTScript> pScript = OTScriptFactory(str_language, str_code);
+
+    // SET UP THE NATIVE CALLS, REGISTER THE PARTIES, REGISTER THE VARIABLES,
+    // AND EXECUTE THE SCRIPT.
+    if (pScript) {
+        // Register the special server-side native OT calls we make available to
+        // all scripts.
+        RegisterOTNativeCallsWithScript(*pScript);
+
+        // Add the parameters...
+        for (auto& it : theParameters) {
+            const std::string str_var_name = it.first;
+            OTVariable* pVar = it.second;
+            OT_ASSERT((nullptr != pVar) && (str_var_name.size() > 0));
+
+            pVar->RegisterForExecution(*pScript);
+        }
+
+        // Also need to loop through the Variables on pBylaw and register those as well.
+        // This sets all the variables as CLEAN so we can check for dirtiness after execution.
+        pBylaw->RegisterVariablesForExecution(*pScript);
+
+        //SetDisplayLabel(&str_clause_name);
+        //pScript->SetDisplayFilename(m_strLabel.Get());
+
+        if (!pScript->ExecuteScript(&varReturnVal)) {
+            otErr << "AssetContract::ExecuteClause: Error while running clause on assetContract.\n";
+        } else {
+            otOut << "AssetContract::ExecuteClause: Successfully executed clause on assetContract.\n\n";
+            return true;
+        }
+    } else {
+        otErr << "AssetContract::ExecuteClause: Error instantiating script!\n";
+    }
+
+    return false;
+}
+
 
 } // namespace opentxs
