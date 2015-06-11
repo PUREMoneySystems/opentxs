@@ -568,12 +568,12 @@ bool OTSymmetricKey::CreateNewKey(String& strOutput, const String* pstrDisplay,
             &strDisplay, true)); // bAskTwice=false by default.
     }
     else
-        pPassUserInput.reset(const_cast<OTPassword*>(pAlreadyHavePW));
+        pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
     bool bSuccess = false;
 
-    if (nullptr != pPassUserInput) // Success retrieving the passphrase from the
-                                   // user. (Now let's generate the key...)
+    if (pPassUserInput) // Success retrieving the passphrase from the
+                        // user. (Now let's generate the key...)
     {
         otLog3 << __FUNCTION__
                << ": Calling OTSymmetricKey theKey.GenerateKey()...\n";
@@ -653,7 +653,7 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
             &strDisplay)); // bAskTwice=false by default.
     }
     else
-        pPassUserInput.reset(const_cast<OTPassword*>(pAlreadyHavePW));
+        pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
     OTASCIIArmor ascOutput;
     bool bSuccess = false;
