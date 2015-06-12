@@ -100,6 +100,13 @@ int32_t CmdShowMyOffers::run(string server, string mynym)
         return -1;
     }
 
+    // (FT) TODO: Fix this ridiculous memory leak. map_of_maps is not
+    // cleaned up below this point. (Nor are its member pointers and their
+    // contents. unique_ptr is not enough.) I think the only reason Eric
+    // let this go was because the program ends anyway after the command
+    // fires. Still, needs cleanup.
+    
+    
     // output_nymoffer_data is called for each offer, for this nym, as it
     // iterates through the maps.
     //

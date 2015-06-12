@@ -87,8 +87,9 @@ const std::string& GetTypeString(int theType)
 namespace opentxs
 {
 
-#define MC_UI_TEXT_TO "To: %s"
-#define MC_UI_TEXT_FROM "From: %s"
+    // DISPLAY FORMATTING FOR "TO:" AND "FROM:"
+#define MC_UI_TEXT_TO "%s"
+#define MC_UI_TEXT_FROM "%s"
 
 //#define MC_UI_TEXT_TO "<font color='grey'>To:</font> %s"
 //#define MC_UI_TEXT_FROM "<font color='grey'>From:</font> %s"

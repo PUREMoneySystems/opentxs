@@ -1299,6 +1299,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
     if (nCount > 0) {
         for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+
             nTemp = nIndex;
             OTDB::OfferDataNym* offerDataPtr = offerList.GetOfferDataNym(nTemp);
 
@@ -1309,6 +1310,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
                 return map_of_maps;
             }
 
+            
             OTDB::OfferDataNym& offerData = *offerDataPtr;
             string strScale = offerData.scale;
             string strInstrumentDefinitionID =
@@ -1319,7 +1321,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
             string strMapKey = strScale + "-" + strInstrumentDefinitionID +
                                "-" + strCurrencyTypeID;
-
+            
             SubMap* sub_map = nullptr;
             if (nullptr != map_of_maps && !map_of_maps->empty() &&
                 (map_of_maps->count(strMapKey) > 0)) {
@@ -1331,12 +1333,10 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
                 // Let's just add this offer to the existing submap
                 // (There must be other offers already there for the same
-                // market,
-                // since the submap already exists.)
+                // market, since the submap already exists.)
                 //
                 // the sub_map for this market is mapped by BUY/SELL ==> the
-                // actual
-                // offerData.
+                // actual offerData.
                 //
 
                 (*sub_map)[strTransactionID] = &offerData;
@@ -1353,9 +1353,10 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
                 sub_map = new SubMap();
                 (*sub_map)[strTransactionID] = &offerData;
 
-                if (nullptr != map_of_maps) {
+                if (nullptr == map_of_maps) {
                     map_of_maps = new MapOfMaps;
                 }
+
                 (*map_of_maps)[strMapKey] = sub_map;
             }
 
@@ -1394,7 +1395,7 @@ OT_OTAPI_OT int32_t
 
     if (0 == nIndex) // first iteration! (Output a header.)
     {
-        otOut << "Scale:\t\t" << strScale << "\n";
+        otOut << "\nScale:\t\t" << strScale << "\n";
         otOut << "Asset:\t\t" << strInstrumentDefinitionID << "\n";
         otOut << "Currency:\t" << strCurrencyTypeID << "\n";
         otOut << "\nIndex\tTrans#\tType\tPrice\tAvailable\n";

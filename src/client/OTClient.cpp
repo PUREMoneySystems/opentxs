@@ -4092,259 +4092,148 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                 if (nullptr != pServerItem) {
                                     String strOffer, strTrade;
-                                    pServerItem->GetAttachment(
-                                        strOffer); // contains updated
-                                                   // offer.
-                                    pServerItem->GetNote(
-                                        strTrade); // contains updated
-                                                   // trade.
+                                    pServerItem->GetAttachment(strOffer); // contains updated offer.
+                                    pServerItem->GetNote(strTrade); // contains updated trade.
 
                                     OTOffer theOffer;
                                     OTTrade theTrade;
 
-                                    bool bLoadOfferFromString =
-                                        theOffer.LoadContractFromString(
-                                            strOffer);
-                                    bool bLoadTradeFromString =
-                                        theTrade.LoadContractFromString(
-                                            strTrade);
-                                    if (bLoadOfferFromString &&
-                                        bLoadTradeFromString) {
+                                    bool bLoadOfferFromString = theOffer.LoadContractFromString(strOffer);
+                                    bool bLoadTradeFromString = theTrade.LoadContractFromString(strTrade);
+
+                                    if (bLoadOfferFromString && bLoadTradeFromString) {
                                         std::unique_ptr<OTDB::TradeDataNym>
-                                        pData(dynamic_cast<OTDB::TradeDataNym*>(
-                                            OTDB::CreateObject(
-                                                OTDB::
-                                                    STORED_OBJ_TRADE_DATA_NYM)));
+                                        pData(dynamic_cast<OTDB::TradeDataNym*>(OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_DATA_NYM)));
                                         OT_ASSERT(nullptr != pData);
 
+                                        int64_t lScale = theOffer.GetScale();
+                                        
                                         /*
                                         std::stringstream ss;
                                         ss << theTrade.GetTransactionNum();
                                         pData->transaction_id = ss.str();
                                         ss.str(""); */
-                                        pData->transaction_id = to_string<
-                                            int64_t>(
-                                            theTrade
-                                                .GetTransactionNum()); // TransID
-                                        // for
-                                        // original
-                                        // offer.
-                                        // (Offer
-                                        // may
-                                        // trade
-                                        // many
-                                        // times.)
-                                        pData->updated_id = to_string<int64_t>(
-                                            pServerItem
-                                                ->GetTransactionNum()); // TransID
-                                                                        // for
-                                                                        // BOTH
-                                        // receipts
-                                        // for
-                                        // current
-                                        // trade.
-                                        // (Asset/Currency.)
-                                        pData->completed_count =
-                                            to_string<int32_t>(
-                                                theTrade.GetCompletedCount());
-                                        std::unique_ptr<Account> pAccount(
-                                            Account::LoadExistingAccount(
-                                                ACCOUNT_ID, NOTARY_ID));
+                                        pData->transaction_id = to_string<int64_t>(theTrade.GetTransactionNum()); // TransID
+                                        // for original offer. (Offer may trade many times.)
+                                        pData->updated_id = to_string<int64_t>(pServerItem->GetTransactionNum()); // TransID
+                                        // for BOTH receipts for current trade. (Asset/Currency.)
+                                        
+                                        pData->completed_count = to_string<int32_t>(theTrade.GetCompletedCount());
+                                        std::unique_ptr<Account> pAccount(Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID));
 
-                                        bool bIsAsset =
-                                            (theTrade
-                                                 .GetInstrumentDefinitionID() ==
-                                             pAccount
-                                                 ->GetInstrumentDefinitionID());
-                                        bool bIsCurrency =
-                                            (theTrade.GetCurrencyID() ==
-                                             pAccount
-                                                 ->GetInstrumentDefinitionID());
+                                        bool bIsAsset =    (theTrade.GetInstrumentDefinitionID() == pAccount->GetInstrumentDefinitionID());
+                                        bool bIsCurrency = (theTrade.GetCurrencyID()             == pAccount->GetInstrumentDefinitionID());
 
                                         if (bIsAsset) {
-                                            //                                                  pServerItem->GetAmount()
-                                            // contains:  (lAmountSold); //
-                                            // asset
+                                            // pServerItem->GetAmount() contains:  (lAmountSold);
+                                            //asset
 
-                                            const String strInstrumentDefinitionID(
-                                                theTrade
-                                                    .GetInstrumentDefinitionID());
-                                            int64_t lAssetsThisTrade =
-                                                pServerItem->GetAmount();
-                                            pData->instrument_definition_id =
-                                                strInstrumentDefinitionID.Get();
-                                            pData->amount_sold =
-                                                to_string<int64_t>(
-                                                    lAssetsThisTrade); // The
-                                                                       // amount
-                                                                       // of
-                                                                       // ASSETS
-                                                                       // moved,
-                                                                       // this
-                                                                       // trade.
+                                            const String strInstrumentDefinitionID(theTrade.GetInstrumentDefinitionID());
+                                            int64_t lAssetsThisTrade = pServerItem->GetAmount();
+                                            pData->instrument_definition_id = strInstrumentDefinitionID.Get();
+                                            pData->amount_sold = to_string<int64_t>(lAssetsThisTrade); // The amount of ASSETS moved, this trade.
                                         }
                                         else if (bIsCurrency) {
                                             //                                                  pServerItem->GetAmount()
                                             // contains:  (lTotalPaidOut);
                                             // // currency
 
-                                            const String strCurrencyID(
-                                                theTrade.GetCurrencyID());
-                                            int64_t lCurrencyThisTrade =
-                                                pServerItem->GetAmount();
-                                            pData->currency_id =
-                                                strCurrencyID.Get();
-                                            pData->currency_paid =
-                                                to_string<int64_t>(
-                                                    lCurrencyThisTrade);
+                                            const String strCurrencyID(theTrade.GetCurrencyID());
+                                            int64_t lCurrencyThisTrade = pServerItem->GetAmount();
+                                            pData->currency_id   = strCurrencyID.Get();
+                                            pData->currency_paid = to_string<int64_t>(lCurrencyThisTrade);
                                         }
-                                        const time64_t& tProcessDate =
-                                            theTrade.GetLastProcessDate();
-                                        pData->date =
-                                            to_string<time64_t>(tProcessDate);
-                                        // The original offer price. (Might
-                                        // be 0, if it's a market order.)
+                                        
+                                        // NOTE: Apparently GetLastProcessDate is used internally in OTServer
+                                        // but not actually saved onto the updated Trade object. Therefore it
+                                        // contains a zero. Might have to change the server to save this date,
+                                        // so we don't display a zero date on the client side.
+                                        
+                                        const time64_t& tProcessDate = theTrade.GetLastProcessDate();
+                                        pData->date = to_string<time64_t>(tProcessDate);
+                                        
+                                        // The original offer price. (Might be 0, if it's a market order.)
                                         //
-                                        const int64_t& lPriceLimit =
-                                            theOffer.GetPriceLimit();
-                                        pData->offer_price =
-                                            to_string<int64_t>(lPriceLimit);
-                                        const int64_t& lFinishedSoFar =
-                                            theOffer.GetFinishedSoFar();
-                                        pData->finished_so_far =
-                                            to_string<int64_t>(lFinishedSoFar);
+                                        const int64_t& lPriceLimit = theOffer.GetPriceLimit();
+                                        pData->offer_price = to_string<int64_t>(lPriceLimit);
+                                        const int64_t& lFinishedSoFar = theOffer.GetFinishedSoFar();
+                                        pData->finished_so_far = to_string<int64_t>(lFinishedSoFar);
+                                        
                                         // save to local storage...
                                         //
                                         String strNymID(NYM_ID);
 
-                                        std::unique_ptr<OTDB::TradeListNym>
-                                            pList;
+                                        std::unique_ptr<OTDB::TradeListNym> pList;
 
                                         if (OTDB::Exists(OTFolders::Nym().Get(),
-                                                         "trades", // todo stop
-                                                         // hardcoding.
+                                                         "trades", // todo stop hardcoding.
                                                          strNotaryID.Get(),
                                                          strNymID.Get()))
-                                            pList.reset(dynamic_cast<
-                                                OTDB::TradeListNym*>(
-                                                OTDB::QueryObject(
-                                                    OTDB::
-                                                        STORED_OBJ_TRADE_LIST_NYM,
-                                                    OTFolders::Nym().Get(),
-                                                    "trades", // todo stop
-                                                              // hardcoding.
-                                                    strNotaryID.Get(),
-                                                    strNymID.Get())));
+                                            pList.reset(dynamic_cast<OTDB::TradeListNym*>
+                                                        (OTDB::QueryObject(OTDB::STORED_OBJ_TRADE_LIST_NYM,
+                                                                           OTFolders::Nym().Get(),
+                                                                           "trades", // todo stop hardcoding.
+                                                                           strNotaryID.Get(),
+                                                                           strNymID.Get())));
                                         if (nullptr == pList) {
-                                            otInfo << "Creating storage list "
-                                                      "of trade receipts for "
-                                                      "Nym: " << strNymID
-                                                   << "\n";
-                                            pList.reset(dynamic_cast<
-                                                OTDB::
-                                                    TradeListNym*>(OTDB::CreateObject(
-                                                OTDB::
-                                                    STORED_OBJ_TRADE_LIST_NYM)));
+                                            otInfo << "Creating storage list of trade receipts for Nym: "
+                                                << strNymID << "\n";
+                                            pList.reset(dynamic_cast<OTDB::TradeListNym*>
+                                                        (OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_NYM)));
                                         }
                                         OT_ASSERT(nullptr != pList);
-                                        // Loop through and see if we can
-                                        // find one that's ALREADY there.
-                                        // We can match the asset receipt
-                                        // and currency receipt.
-                                        // This way we insure there is only
-                                        // one in the end, which combines
+                                        
+                                        // Loop through and see if we can find one that's ALREADY there.
+                                        // We can match the asset receipt and currency receipt.
+                                        // This way we insure there is only one in the end, which combines
                                         // info from both.
-                                        // This also enables us to calculate
-                                        // the sale price!
+                                        // This also enables us to calculate the sale price!
                                         //
                                         bool bWeFoundIt = false;
 
-                                        size_t nTradeDataNymCount =
-                                            pList->GetTradeDataNymCount();
+                                        size_t nTradeDataNymCount = pList->GetTradeDataNymCount();
 
                                         for (size_t nym_count = 0;
                                              nym_count < nTradeDataNymCount;
                                              ++nym_count) {
-                                            OTDB::TradeDataNym* pTradeData =
-                                                pList->GetTradeDataNym(
-                                                    nym_count);
+                                            
+                                            OTDB::TradeDataNym* pTradeData = pList->GetTradeDataNym(nym_count);
 
-                                            if (nullptr ==
-                                                pTradeData) // Should never
-                                                            // happen.
+                                            if (nullptr == pTradeData) // Should never happen.
                                                 continue;
-                                            if (0 ==
-                                                pTradeData->updated_id.compare(
-                                                    pData->updated_id)) // Found
-                                            // it!
+                                            
+                                            if (0 == pTradeData->updated_id.compare(pData->updated_id)) // Found it!
                                             {
-                                                // It's a repeat of the same
-                                                // one. (Discard.)
-                                                if ((!pTradeData
-                                                          ->instrument_definition_id
-                                                          .empty() &&
-                                                     !pData
-                                                          ->instrument_definition_id
-                                                          .empty()) ||
-                                                    (!pTradeData->currency_id
-                                                          .empty() &&
-                                                     !pData->currency_id
-                                                          .empty()))
+                                                // It's a repeat of the same one. (Discard.)
+                                                if ((!pTradeData->instrument_definition_id.empty() && !pData->instrument_definition_id.empty()) ||
+                                                    (!pTradeData->currency_id.empty() && !pData->currency_id.empty()))
                                                     break;
-                                                // Okay looks like one is
-                                                // the asset receipt, and
-                                                // the other is the currency
-                                                // receipt.
-                                                // Therefore let's combine
-                                                // them into pTradeData!
+                                                // Okay looks like one is the asset receipt, and
+                                                // the other is the currency receipt.
+                                                // Therefore let's combine them into pTradeData!
                                                 //
-                                                if (pTradeData
-                                                        ->instrument_definition_id
-                                                        .empty()) {
-                                                    pTradeData
-                                                        ->instrument_definition_id =
-                                                        pData
-                                                            ->instrument_definition_id;
-                                                    pTradeData->amount_sold =
-                                                        pData->amount_sold;
+                                                if (pTradeData->instrument_definition_id.empty()) {
+                                                    pTradeData->instrument_definition_id = pData->instrument_definition_id;
+                                                    pTradeData->amount_sold = pData->amount_sold;
                                                 }
-                                                else if (pTradeData
-                                                               ->currency_id
-                                                               .empty()) {
-                                                    pTradeData->currency_id =
-                                                        pData->currency_id;
-                                                    pTradeData->currency_paid =
-                                                        pData->currency_paid;
+                                                if (pTradeData->currency_id.empty()) {
+                                                    pTradeData->currency_id = pData->currency_id;
+                                                    pTradeData->currency_paid = pData->currency_paid;
                                                 }
-                                                if (!pTradeData->amount_sold
-                                                         .empty() &&
-                                                    !pTradeData->currency_paid
-                                                         .empty()) {
-                                                    const int64_t lAmountSold =
-                                                        String::StringToLong(
-                                                            pTradeData
-                                                                ->amount_sold);
-                                                    const int64_t lCurrencyPaid =
-                                                        String::StringToLong(
-                                                            pTradeData
-                                                                ->currency_paid);
+                                                if (!pTradeData->amount_sold.empty() &&
+                                                    !pTradeData->currency_paid.empty()) {
+                                                    
+                                                    const int64_t lAmountSold = String::StringToLong(pTradeData->amount_sold);
+                                                    const int64_t lCurrencyPaid = String::StringToLong(pTradeData->currency_paid);
 
-                                                    if (lAmountSold !=
-                                                        0) // just in case
-                                                           // (divide by 0.)
+                                                    if ((lAmountSold != 0) && (lScale != 0)) // just in case (divide by 0.)
                                                     {
-                                                        const int64_t
-                                                            lSalePrice =
-                                                                (lCurrencyPaid /
-                                                                 lAmountSold);
+                                                        const int64_t lSalePrice = (lCurrencyPaid / (lAmountSold / lScale));
 
                                                         String strSalePrice;
-                                                        strSalePrice.Format(
-                                                            "%" PRId64 "",
-                                                            lSalePrice);
+                                                        strSalePrice.Format("%" PRId64 "", lSalePrice);
 
-                                                        pTradeData->price =
-                                                            strSalePrice.Get();
+                                                        pTradeData->price = strSalePrice.Get();
                                                     }
                                                 }
 
@@ -4352,8 +4241,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                                 break;
 
-                                            }            // if we found it.
-                                        }                // for
+                                            } // if we found it.
+                                        } // for
                                         if (!bWeFoundIt) // We didn't find
                                                          // it. So let's add
                                                          // it.
@@ -6972,10 +6861,9 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Market().Get(),    // "markets"
-            theReply.m_strNotaryID.Get(), // "markets/<notaryID>offers", //
-                                          // "markets/<notaryID>/offers"
-                                          // // todo stop
-                                          // hardcoding.
+            theReply.m_strNotaryID.Get(), // "markets/<notaryID>",
+            "offers",                     // "markets/<notaryID>/offers"
+                                          // todo stop hardcoding.
             strOfferDatafile
                 .Get()); // "markets/<notaryID>/offers/<marketID>.bin"
         if (!bSuccessErase)
@@ -7021,8 +6909,8 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList, OTFolders::Market().Get(), // "markets"
-        theReply.m_strNotaryID.Get(), // "markets/<notaryID>offers", //
-                                      // "markets/<notaryID>/offers"   //
+        theReply.m_strNotaryID.Get(), // "markets/<notaryID>",
+        "offers",                     // "markets/<notaryID>/offers"
                                       // todo stop hardcoding.
         strOfferDatafile.Get()); // "markets/<notaryID>/offers/<marketID>.bin"
     if (!bSuccessStore)
@@ -7100,8 +6988,8 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pTradeList, OTFolders::Market().Get(), // "markets"
-        theReply.m_strNotaryID.Get(), // "markets/<notaryID>recent", //
-                                      // "markets/<notaryID>/recent"   //
+        theReply.m_strNotaryID.Get(), // "markets/<notaryID>"
+        "recent",                     // "markets/<notaryID>/recent"
                                       // todo stop hardcoding.
         strTradeDatafile.Get()); // "markets/<notaryID>/recent/<marketID>.bin"
     if (!bSuccessStore)
@@ -7121,15 +7009,14 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
     // Since it was a success, but the list was empty, then we need to erase
     // the data file. (So when the file is loaded from storage, it will
-    // correctly
-    // display an empty list on the screen, instead of a list of outdated
-    // items.)
+    // correctly display an empty list on the screen, instead of a list of
+    // outdated items.)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Nym().Get(),       // "nyms"
-            theReply.m_strNotaryID.Get(), // "nyms/<notaryID>offers", //
-                                          // "nyms/<notaryID>/offers"   //
+            theReply.m_strNotaryID.Get(), // "nyms/<notaryID>",
+            "offers",                     // "nyms/<notaryID>/offers"
                                           // todo stop hardcoding.
             strOfferDatafile.Get()); // "nyms/<notaryID>/offers/<NymID>.bin"
         if (!bSuccessErase)
@@ -7175,9 +7062,8 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList, OTFolders::Nym().Get(), // "nyms"
-        theReply.m_strNotaryID.Get(),        // "nyms/<notaryID>offers", //
-        // "nyms/<notaryID>/offers"   // todo
-        // stop hardcoding.
+        theReply.m_strNotaryID.Get(),        // "nyms/<notaryID>",
+        "offers",                            // "nyms/<notaryID>/offers",
         strOfferDatafile.Get()); // "nyms/<notaryID>/offers/<NymID>.bin"
     if (!bSuccessStore)
         otErr << "Error storing " << strOfferDatafile << " to nyms folder.\n";

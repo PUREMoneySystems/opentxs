@@ -2617,7 +2617,7 @@ bool StorageFS::onStorePackedBuffer(PackedBuffer& theBuffer,
 
     // TODO: If not, next I should actually create a .lock file for myself right
     // here..
-
+    
     // SAVE to the file here
     std::ofstream ofs(strOutput.c_str(), std::ios::out | std::ios::binary);
 

@@ -1461,7 +1461,8 @@ void UserCommandProcessor::UserCmdGetNymMarketOffers(Nym& theNym,
     msgOut.m_bSuccess =
         server_->m_Cron.GetNym_OfferList(ascOutput, NYM_ID, nOfferCount);
 
-    if ((true == msgOut.m_bSuccess) && (nOfferCount > 0)) {
+    if ((msgOut.m_bSuccess) && (nOfferCount > 0)) {
+        
         msgOut.m_ascPayload = ascOutput;
         msgOut.m_lDepth = nOfferCount;
     }

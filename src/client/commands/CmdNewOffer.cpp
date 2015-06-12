@@ -143,12 +143,16 @@ int32_t CmdNewOffer::run(string myacct, string hisacct, string type,
     }
 
     OT_ME ot_me;
-    ot_me.get_nym_market_offers(server, mynym);
 
-    if (0 > cleanMarketOfferList(server, mynym, myacct, hisacct, type, scale,
-                                 price)) {
-        return -1;
-    }
+    // NOTE: Removing this for now. It was a special feature for
+    // knotwork and currently it's causing me some problems.
+    //
+//    ot_me.get_nym_market_offers(server, mynym);
+//
+//    if (0 > cleanMarketOfferList(server, mynym, myacct, hisacct, type, scale,
+//                                 price)) {
+//        return -1;
+//    }
 
     // OKAY! Now that we've cleaned out any undesirable offers, let's place the
     // the offer itself!
@@ -227,6 +231,12 @@ int32_t CmdNewOffer::cleanMarketOfferList(
         otOut << "Error: cannot convert offer list to map.\n";
         return -1;
     }
+    // (FT) TODO: Fix this ridiculous memory leak. map_of_maps is not
+    // cleaned up below this point. (Nor are its member pointers and their
+    // contents. unique_ptr is not enough.) I think the only reason Eric
+    // let this go was because the program ends anyway after the command
+    // fires. Still, needs cleanup.
+
 
     // find_strange_offers is called for each offer, for this nym, as it
     // iterates through the maps. When it's done, extra.the_vector

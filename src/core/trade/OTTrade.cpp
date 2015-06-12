@@ -1039,7 +1039,6 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 // Return False if I should be removed and deleted.
 bool OTTrade::ProcessCron()
 {
-
     // Right now Cron is called 10 times per second.
     // I'm going to slow down all trades so they are once every
     // GetProcessInterval()
@@ -1050,7 +1049,7 @@ bool OTTrade::ProcessCron()
                                   GetLastProcessDate()) <= GetProcessInterval())
             return true;
     }
-
+    
     // Keep a record of the last time this was processed.
     // (NOT saved to storage, only used while the software is running.)
     // (Thus no need to release signatures, sign contract, save contract, etc.)
@@ -1099,6 +1098,7 @@ bool OTTrade::ProcessCron()
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.
     if (offer == nullptr) {
+        
         // The offer SHOULD HAVE been on the market, since we're within the
         // valid range,
         // and GetOffer adds it when it's not already there.
@@ -1113,6 +1113,7 @@ bool OTTrade::ProcessCron()
         // checks its prices.
     }
     else if (market == nullptr) {
+        
         // todo. (This will already leave a log above in GetOffer somewhere.)
         //        otErr << "OTTrade::ProcessCron: Market was nullptr.\n"; //
         // comment this out

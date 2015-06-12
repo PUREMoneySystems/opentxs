@@ -734,10 +734,10 @@ bool OTMarket::LoadMarket()
 
     Identifier MARKET_ID(*this);
     String str_MARKET_ID(MARKET_ID);
-
+    
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
-
+    
     bool bSuccess = OTDB::Exists(szFoldername, szFilename);
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename); // todo ??
@@ -749,12 +749,15 @@ bool OTMarket::LoadMarket()
     if (bSuccess) {
         if (nullptr != m_pTradeList) delete m_pTradeList;
 
+        String str_TRADES_FILE;
+        str_TRADES_FILE.Format("%s.bin", str_MARKET_ID.Get());
+
         const char* szSubFolder = "recent"; // todo stop hardcoding.
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_TRADE_LIST_MARKET, szFoldername, // markets
             szSubFolder,                                      // markets/recent
-            szFilename)); // markets/recent/market_ID
+            str_TRADES_FILE.Get())); // markets/recent/<market_ID>.bin
     }
 
     return bSuccess;
@@ -790,12 +793,16 @@ bool OTMarket::SaveMarket()
     // Save a copy of recent trades.
 
     if (nullptr != m_pTradeList) {
+        
+        String str_TRADES_FILE;
+        str_TRADES_FILE.Format("%s.bin", str_MARKET_ID.Get());
+        
         const char* szSubFolder = "recent"; // todo stop hardcoding.
 
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(*m_pTradeList, szFoldername, // markets
                                szSubFolder,                 // markets/recent
-                               szFilename)) // markets/recent/Market_ID
+                               str_TRADES_FILE.Get()))      // markets/recent/<Market_ID>.bin
             otErr << "Error saving recent trades for Market:\n" << szFoldername
                   << Log::PathSeparator() << szSubFolder << Log::PathSeparator()
                   << szFilename << "\n";
@@ -2338,7 +2345,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
 {
     if (theOffer.GetAmountAvailable() < theOffer.GetMinimumIncrement()) {
-        otOut << "OTMarket::" << __FUNCTION__ << ": Removing offer from "
+        otInfo << "OTMarket::" << __FUNCTION__ << ": Removing offer from "
                                                  "market. (Amount Available is "
                                                  "less than Min Increment.)\n";
         return false;
@@ -2361,10 +2368,12 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
     // so if we are processing here and we haven't found any potential matches,
     // we're REMOVED.)
     //
-    if ((0 == lRelevantPrice) &&
-        theOffer.IsMarketOrder()) // Market order has 0 price.
+    if ((0 == lRelevantPrice) && // Market order has 0 price.
+        theOffer.IsMarketOrder()) {
+        otInfo << "OTMarket::" << __FUNCTION__ << ": Removing market order that has 0 price: "
+            << formatLong(theTrade.GetOpeningNum()) << "\n";
         return false;
-
+    }
     // If there were no bids/asks (whichever is relevant to this trade) on the
     // market at ALL,
     // then lRelevant price will be 0 at this point. In which case we're DONE.
@@ -2475,8 +2484,16 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                                                   // trade may have gotten
                                                   // flagged.
                 (theOffer.GetMinimumIncrement() >
-                 theOffer.GetAmountAvailable()))
-                return false; // remove this trade from cron
+                 theOffer.GetAmountAvailable())) {
+                    
+                    otInfo << "OTMarket::" << __FUNCTION__ << ": Removing market order: "
+                        << formatLong(theTrade.GetOpeningNum()) << ". IsFlaggedForRemoval: "
+                        << formatBool(theTrade.IsFlaggedForRemoval())
+                        << ". Minimum increment is larger than Amount available: "
+                    <<  (theOffer.GetMinimumIncrement() > theOffer.GetAmountAvailable()) << "\n";
+
+                    return false; // remove this trade from cron
+                }
 
             pBid = nullptr;
         }
@@ -2552,8 +2569,16 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                                                   // trade may have gotten
                                                   // flagged.
                 (theOffer.GetMinimumIncrement() >
-                 theOffer.GetAmountAvailable()))
-                return false; // remove this trade from the market.
+                 theOffer.GetAmountAvailable())) {
+                    
+                    otInfo << "OTMarket::" << __FUNCTION__ << ": Removing market order: "
+                        << formatLong(theTrade.GetOpeningNum()) << ". IsFlaggedForRemoval: "
+                        << formatBool(theTrade.IsFlaggedForRemoval())
+                        << ". Minimum increment is larger than Amount available: "
+                        <<  (theOffer.GetMinimumIncrement() > theOffer.GetAmountAvailable()) << "\n";
+
+                    return false; // remove this trade from the market.
+                }
 
             pAsk = nullptr;
         }
