@@ -48,8 +48,50 @@
 
 #include <czmq.h>
 
+#define CLIENT_SOCKET_LINGER 1000
+#define CLIENT_SEND_TIMEOUT 1000
+#define CLIENT_RECV_TIMEOUT 10000
+
 namespace opentxs
 {
+
+// static ---------------------------------------------------
+int OTServerConnection::s_linger       = CLIENT_SOCKET_LINGER;
+int OTServerConnection::s_send_timeout = CLIENT_SEND_TIMEOUT;
+int OTServerConnection::s_recv_timeout = CLIENT_RECV_TIMEOUT;
+
+int OTServerConnection::getLinger()
+{
+    return s_linger;
+}
+
+int OTServerConnection::getSendTimeout()
+{
+    return s_send_timeout;
+}
+
+int OTServerConnection::getRecvTimeout()
+{
+    return s_recv_timeout;
+}
+
+void OTServerConnection::setLinger(int nIn)
+{
+    s_linger = nIn;
+}
+
+void OTServerConnection::setSendTimeout(int nIn)
+{
+    s_send_timeout = nIn;
+}
+
+void OTServerConnection::setRecvTimeout(int nIn)
+{
+    s_recv_timeout = nIn;
+}
+    
+// end static -----------------------------------------------
+
 
 // When a certain Nym opens a certain account on a certain server,
 // that account is put onto a list of accounts inside the wallet.
@@ -71,7 +113,11 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
         Log::vError("Error: libzmq has no libsodium support");
         OT_FAIL;
     }
-    zsock_set_linger(socket_zmq, 1000);
+
+    zsock_set_linger(socket_zmq, OTServerConnection::getLinger());
+    zsock_set_sndtimeo(socket_zmq, OTServerConnection::getSendTimeout());
+    zsock_set_rcvtimeo(socket_zmq, OTServerConnection::getRecvTimeout());
+    
     // Set new client public and secret key.
     zcert_apply(zcert_new(), socket_zmq);
     // Set server public key.

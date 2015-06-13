@@ -63,14 +63,23 @@ OTServerContract::OTServerContract()
 }
 
 OTServerContract::OTServerContract(String& name, String& foldername,
-                                   String& filename, String& strID)
-    : Contract(name, foldername, filename, strID)
+                                   String& filename, String& strID) :
+    Contract(name, foldername, filename, strID),
+    m_transportKey(nullptr)
 {
     m_nPort = 0;
 }
 
 OTServerContract::~OTServerContract()
 {
+    if (nullptr != m_transportKey) {
+        // I'm doing this cast because although m_transportKey is
+        // an unsigned char *, it was originally allocated in a
+        // call to uint8_t * OTCrypto_OpenSSL::Base64Decode.
+        //
+        uint8_t * pKey = static_cast<uint8_t *>(m_transportKey);
+        delete [] pKey;
+    }
 }
 
 bool OTServerContract::GetConnectInfo(String& strHostname, int32_t& nPort) const

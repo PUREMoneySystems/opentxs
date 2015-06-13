@@ -79,7 +79,15 @@ public:
 
     void send(OTServerContract* pServerContract, Nym* pNym,
               const Message& theMessage);
-
+    
+    static int getLinger();
+    static int getSendTimeout();
+    static int getRecvTimeout();
+    
+    static void setLinger(int nIn);
+    static void setSendTimeout(int nIn);
+    static void setRecvTimeout(int nIn);
+    
 private:
     bool send(const String&);
     bool receive(std::string& reply);
@@ -89,6 +97,10 @@ private:
     Nym* m_pNym;
     OTServerContract* m_pServerContract;
     OTClient* m_pClient;
+    
+    static int s_linger;
+    static int s_send_timeout;
+    static int s_recv_timeout;
 };
 
 } // namespace opentxs

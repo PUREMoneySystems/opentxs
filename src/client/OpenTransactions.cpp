@@ -41,6 +41,7 @@
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTClient.hpp>
+#include <opentxs/client/OTServerConnection.hpp>
 #include "Helpers.hpp"
 #include <opentxs/client/OTWallet.hpp>
 
@@ -139,6 +140,8 @@ extern "C" {
 #define CLIENT_WALLET_FILENAME "wallet.xml"
 #define CLIENT_USE_SYSTEM_KEYRING false
 #define CLIENT_PID_FILENAME "ot.pid"
+
+// The #defines for the latency values can be found in OTServerConnection.cpp.
 
 namespace opentxs
 {
@@ -785,40 +788,46 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
     {
         const char* szComment =
             ";; LATENCY:\n\n"
-            ";; For sending and receiving:\n"
-            ";; blocking=true (usually not recommended) means OT will hang on "
-            "the send/receive\n"
-            ";; call, and wait indefinitely until the send or receive has "
-            "actually occurred.\n"
-            ";; IF BLOCKING IS FALSE (normal, default):\n"
-            ";; - no_tries is the number of times OT will try to send or "
-            "receive a message.\n"
-            ";; - ms is the number of milliseconds it will wait between each "
-            "attempt.\n"
-            ";; UPDATE: send_ms and receive_ms now DOUBLE after each failed "
-            "attempt! (up to 3 tries)\n"
-            ";; Meaning that after 3 tries, it's already waited over 21 "
-            "seconds trying to get\n"
-            ";; the message. \n"
-            ";; send_delay_after happens after EVERY SINGLE server "
-            "request/reply, which can be\n"
-            ";; multiple times per use case. (They can add up quick...)\n";
+            ";; - linger is the number of milliseconds OT will try to send any outgoing messages queued in a socket that's being closed.\n"
+        ";; - send_timeout is the number of milliseconds OT will wait while sending a message, before it gives up.\n"
+        ";; - recv_timeout is the number of milliseconds OT will wait while receiving a reply, before it gives up.\n";
 
         bool b_SectionExist;
         p_Config->CheckSetSection("latency", szComment, b_SectionExist);
     }
 
+    {
+        int64_t lValue; bool bIsNewKey;
+        p_Config->CheckSet_long("latency", "linger",
+                                OTServerConnection::getLinger(), lValue, bIsNewKey);
+        OTServerConnection::setLinger(static_cast<int>(lValue));
+    }
+    
+    {
+        int64_t lValue; bool bIsNewKey;
+        p_Config->CheckSet_long("latency", "send_timeout",
+                                OTServerConnection::getSendTimeout(), lValue, bIsNewKey);
+        OTServerConnection::setSendTimeout(static_cast<int>(lValue));
+    }
+    
+    {
+        int64_t lValue; bool bIsNewKey;
+        p_Config->CheckSet_long("latency", "recv_timeout",
+                                OTServerConnection::getRecvTimeout(), lValue, bIsNewKey);
+        OTServerConnection::setRecvTimeout(static_cast<int>(lValue));
+    }
+    
     // SECURITY (beginnings of..)
 
     // Master Key Timeout
     {
         const char* szComment =
-            "; master_key_timeout is how int64_t the master key will be in "
+            "; master_key_timeout is how long the master key will be in "
             "memory until a thread wipes it out.\n"
-            "; 0   : means you have to type your password EVERY time OT uses a "
+            "; 0   : This means you have to type your password EVERY time OT uses a "
             "private key. (Even multiple times in a single function.)\n"
-            "; 300 : means you only have to type it once per 5 minutes.\n"
-            "; -1  : means you only type it once PER RUN (popular for "
+            "; 300 : This means you only have to type it once per 5 minutes.\n"
+            "; -1  : This means you only type it once PER RUN (popular for "
             "servers.)\n";
 
         bool bIsNewKey;
@@ -830,12 +839,14 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
     }
 
     // Use System Keyring
-    {
-        bool bValue, bIsNewKey;
-        p_Config->CheckSet_bool("security", "use_system_keyring",
-                                CLIENT_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
-        OTCachedKey::It()->UseSystemKeyring(bValue);
-    }
+    // NOTE I commented this out because it seems identical to the next piece of code.
+    // Maybe this was a copy/paste error?
+//    {
+//        bool bValue, bIsNewKey;
+//        p_Config->CheckSet_bool("security", "use_system_keyring",
+//                                CLIENT_USE_SYSTEM_KEYRING, bValue, bIsNewKey);
+//        OTCachedKey::It()->UseSystemKeyring(bValue);
+//    }
 
     // Use System Keyring
     {

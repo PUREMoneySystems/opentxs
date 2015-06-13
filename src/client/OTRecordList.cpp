@@ -480,7 +480,7 @@ bool OTRecordList::PerformAutoAccept()
         for (auto& it_nym : m_nyms) {
             ++nNymIndex;
             if (0 == nNymIndex)
-                otOut << "======================================\n "
+                otInfo << "======================================\n "
                       << __FUNCTION__ << ": Beginning auto-accept loop through "
                                          "Nyms...\n";
             const std::string& str_nym_id(it_nym);
@@ -501,7 +501,7 @@ bool OTRecordList::PerformAutoAccept()
                     pWallet->GetServerContract(theNotaryID);
                 OT_ASSERT(nullptr != pServer);
                 const String strNotaryID(theNotaryID);
-                otOut << __FUNCTION__ << ": Server " << nServerIndex
+                otInfo << __FUNCTION__ << ": Server " << nServerIndex
                       << ", ID: " << strNotaryID.Get() << "\n";
                 mapOfPayments thePaymentMap;
                 // OPTIMIZE FYI:
@@ -526,7 +526,7 @@ bool OTRecordList::PerformAutoAccept()
                         OTTransaction* pBoxTrans = it.second;
                         OT_ASSERT(nullptr != pBoxTrans);
                         ++nIndex; // 0 on first iteration.
-                        otOut << __FUNCTION__
+                        otInfo << __FUNCTION__
                               << ": Incoming payment: " << nIndex << "\n";
                         const std::string* p_str_asset_type =
                             &OTRecordList::s_blank; // <========== ASSET TYPE
@@ -620,7 +620,7 @@ bool OTRecordList::PerformAutoAccept()
                                   (0 == str_type.compare("voucher")))) ||
                                 (m_bAutoAcceptCash &&
                                  (0 == str_type.compare("cash")))) {
-                                otOut << __FUNCTION__
+                                otInfo << __FUNCTION__
                                       << ": Adding to acceptance "
                                          "list: pending incoming "
                                       << str_type.c_str() << ".\n";
@@ -769,7 +769,7 @@ bool OTRecordList::PerformAutoAccept()
         for (auto& it_acct : m_accounts) {
             ++nAccountIndex; // (0 on first iteration.)
             if (0 == nAccountIndex)
-                otOut << "---------------------------------\n " << __FUNCTION__
+                otInfo << "---------------------------------\n " << __FUNCTION__
                       << ": "
                          "Beginning auto-accept loop through the "
                          "accounts in the wallet...\n";
@@ -785,7 +785,7 @@ bool OTRecordList::PerformAutoAccept()
             const String strNymID(theNymID);
             const String strNotaryID(theNotaryID);
             const String strInstrumentDefinitionID(theInstrumentDefinitionID);
-            otOut << "------------\n" << __FUNCTION__
+            otInfo << "------------\n" << __FUNCTION__
                   << ": Account: " << nAccountIndex
                   << ", ID: " << str_account_id.c_str() << "\n";
             const std::string str_nym_id(strNymID.Get());
@@ -812,7 +812,7 @@ bool OTRecordList::PerformAutoAccept()
             auto it_asset = m_assets.find(str_instrument_definition_id);
             if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
                 (m_assets.end() == it_asset)) {
-                otOut << __FUNCTION__ << ": Skipping an account ("
+                otInfo << __FUNCTION__ << ": Skipping an account ("
                       << str_account_id.c_str()
                       << ") since its Nym, or Server, "
                          "or Asset Type wasn't on my list.\n";
@@ -835,7 +835,7 @@ bool OTRecordList::PerformAutoAccept()
                                        theNotaryID, theNymID, theAccountID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
-                otOut << __FUNCTION__ << ": Skipping an account ("
+                otInfo << __FUNCTION__ << ": Skipping an account ("
                       << str_account_id.c_str()
                       << ") since its "
                          "inbox failed to load (have you downloaded "
@@ -851,12 +851,12 @@ bool OTRecordList::PerformAutoAccept()
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
-                    otOut
+                    otInfo
                         << __FUNCTION__
                         << ": Beginning loop through asset account INBOX...\n";
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                otOut << __FUNCTION__ << ": Inbox index: " << nInboxIndex
+                otInfo << __FUNCTION__ << ": Inbox index: " << nInboxIndex
                       << "\n";
                 const std::string str_type(
                     pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
@@ -865,7 +865,7 @@ bool OTRecordList::PerformAutoAccept()
                 const bool bIsReceipt = !bIsTransfer;
                 if ((m_bAutoAcceptReceipts && bIsReceipt) ||
                     (m_bAutoAcceptTransfers && bIsTransfer)) {
-                    otOut << __FUNCTION__ << ": Auto-accepting: incoming "
+                    otInfo << __FUNCTION__ << ": Auto-accepting: incoming "
                           << (bIsTransfer ? "pending transfer" : "receipt")
                           << " (str_type: " << str_type.c_str() << ")\n";
                     // If we haven't found any yet, then this must be the first
@@ -961,10 +961,10 @@ bool OTRecordList::PerformAutoAccept()
                         str_notary_id, str_nym_id, str_account_id,
                         true); // bForceDownload defaults to false.
 
-                    otOut << "\n\nServer response (" << strAttempt.c_str()
+                    otInfo << "\n\nServer response (" << strAttempt.c_str()
                           << "): SUCCESS "
                              "processing/accepting inbox.\n";
-                    otOut << (bRetrieved ? "Success" : "Failed")
+                    otInfo << (bRetrieved ? "Success" : "Failed")
                           << " retrieving intermediary files for account.\n";
                 }
             }
@@ -1007,7 +1007,7 @@ bool OTRecordList::Populate()
     for (auto& it_nym : m_nyms) {
         ++nNymIndex;
         if (0 == nNymIndex)
-            otOut << "=============== " << __FUNCTION__
+            otInfo << "=============== " << __FUNCTION__
                   << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
         const Identifier theNymID(str_nym_id);
@@ -1019,12 +1019,12 @@ bool OTRecordList::Populate()
         const int32_t nOutpaymentsCount =
             OTAPI_Wrap::GetNym_OutpaymentsCount(str_nym_id);
 
-        otOut << "--------\n" << __FUNCTION__ << ": Nym " << nNymIndex
+        otInfo << "--------\n" << __FUNCTION__ << ": Nym " << nNymIndex
               << ", nOutpaymentsCount: " << nOutpaymentsCount
               << ", ID: " << strNymID.Get() << "\n";
         for (int32_t nCurrentOutpayment = 0;
              nCurrentOutpayment < nOutpaymentsCount; ++nCurrentOutpayment) {
-            otOut << __FUNCTION__
+            otInfo << __FUNCTION__
                   << ": Outpayment instrument: " << nCurrentOutpayment << "\n";
             const String strOutpayment(
                 OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(
@@ -1087,7 +1087,7 @@ bool OTRecordList::Populate()
                     // did not match any of the assets that we care about.
                     // Therefore, skip.
                     //
-                    otOut << __FUNCTION__
+                    otInfo << __FUNCTION__
                           << ": Skipping outpayment (we don't care "
                              "about instrument definition "
                           << str_outpmt_asset.c_str() << ")\n";
@@ -1135,7 +1135,7 @@ bool OTRecordList::Populate()
                     // did not match any of the accounts that we care about.
                     // Therefore, skip.
                     //
-                    otOut << __FUNCTION__
+                    otInfo << __FUNCTION__
                           << ": Skipping outpayment (we don't care "
                              "about account " << str_outpmt_account.c_str()
                           << ")\n";
@@ -1210,7 +1210,7 @@ bool OTRecordList::Populate()
                 const std::string& str_type = GetTypeString(nType);
                 // CREATE A OTRecord AND POPULATE IT...
                 //
-                otOut << __FUNCTION__
+                otInfo << __FUNCTION__
                       << ": ADDED: pending outgoing instrument (str_type: "
                       << str_type.c_str() << ")\n";
 
@@ -1250,7 +1250,7 @@ bool OTRecordList::Populate()
             else // the server for this outpayment is not on the list of
                    // servers we care about. Skip this outpayment.
             {
-                otOut << __FUNCTION__
+                otInfo << __FUNCTION__
                       << ": Skipping outgoing instrument (we don't "
                          "care about server " << str_outpmt_server.c_str()
                       << ")\n";
@@ -1262,7 +1262,7 @@ bool OTRecordList::Populate()
         const int32_t nMailCount = OTAPI_Wrap::GetNym_MailCount(str_nym_id);
         for (int32_t nCurrentMail = 0; nCurrentMail < nMailCount;
              ++nCurrentMail) {
-            otOut << __FUNCTION__ << ": Mail index: " << nCurrentMail << "\n";
+            otInfo << __FUNCTION__ << ": Mail index: " << nCurrentMail << "\n";
             Message* pMsg = pNym->GetMailByIndex(nCurrentMail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
@@ -1318,7 +1318,7 @@ bool OTRecordList::Populate()
                 const std::string str_date(strDate.Get());
                 // CREATE A OTRecord AND POPULATE IT...
                 //
-                otOut << __FUNCTION__ << ": ADDED: incoming mail.\n";
+                otInfo << __FUNCTION__ << ": ADDED: incoming mail.\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *it_server, *p_str_asset_type, *p_str_asset_name,
@@ -1359,7 +1359,7 @@ bool OTRecordList::Populate()
             OTAPI_Wrap::GetNym_OutmailCount(str_nym_id);
         for (int32_t nCurrentOutmail = 0; nCurrentOutmail < nOutmailCount;
              ++nCurrentOutmail) {
-            otOut << __FUNCTION__ << ": Outmail index: " << nCurrentOutmail
+            otInfo << __FUNCTION__ << ": Outmail index: " << nCurrentOutmail
                   << "\n";
             Message* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
             OT_ASSERT(nullptr != pMsg);
@@ -1416,7 +1416,7 @@ bool OTRecordList::Populate()
                 const std::string str_date(strDate.Get());
                 // CREATE A OTRecord AND POPULATE IT...
                 //
-                otOut << __FUNCTION__ << ": ADDED: sent mail.\n";
+                otInfo << __FUNCTION__ << ": ADDED: sent mail.\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *it_server, *p_str_asset_type, *p_str_asset_name,
@@ -1461,7 +1461,7 @@ bool OTRecordList::Populate()
             OTServerContract* pServer = pWallet->GetServerContract(theNotaryID);
             OT_ASSERT(nullptr != pServer);
             const String strNotaryID(theNotaryID);
-            otOut << __FUNCTION__ << ": Server " << nServerIndex
+            otInfo << __FUNCTION__ << ": Server " << nServerIndex
                   << ", ID: " << strNotaryID.Get() << "\n";
             // OPTIMIZE FYI:
             // The "NoVerify" version is much faster, but you will lose the
@@ -1485,7 +1485,7 @@ bool OTRecordList::Populate()
                     OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(nullptr != pBoxTrans);
                     ++nIndex; // 0 on first iteration.
-                    otOut << __FUNCTION__ << ": Incoming payment: " << nIndex
+                    otInfo << __FUNCTION__ << ": Incoming payment: " << nIndex
                           << "\n";
                     std::string str_name; // name of sender (since its in the
                                           // payments inbox.)
@@ -1675,7 +1675,7 @@ bool OTRecordList::Populate()
                             }
                         }
                     }
-                    otOut << __FUNCTION__
+                    otInfo << __FUNCTION__
                           << ": ADDED: pending incoming payment (str_type: "
                           << str_type.c_str() << ")\n";
 
@@ -1744,7 +1744,7 @@ bool OTRecordList::Populate()
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
-                    otOut << __FUNCTION__
+                    otInfo << __FUNCTION__
                           << ": Payment RECORD index: " << nIndex << "\n";
                     std::string str_name; // name of sender OR recipient
                                           // (depending on whether it was
@@ -1988,7 +1988,7 @@ bool OTRecordList::Populate()
                                         // that we care about.
                                         // Therefore, skip.
                                         //
-                                        otOut << __FUNCTION__
+                                        otInfo << __FUNCTION__
                                               << ": Skipping 'sent payment' "
                                                  "record. (We don't care about "
                                                  "account "
@@ -2111,7 +2111,7 @@ bool OTRecordList::Populate()
                             }
                         }
                     }
-                    otOut << __FUNCTION__ << ": ADDED: Payment record "
+                    otInfo << __FUNCTION__ << ": ADDED: Payment record "
                           << (bOutgoing ? "(sent)" : "(received)")
                           << " (str_type: " << str_type.c_str() << ")\n";
 
@@ -2179,7 +2179,7 @@ bool OTRecordList::Populate()
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
-                    otOut << __FUNCTION__
+                    otInfo << __FUNCTION__
                           << ": Expired payment RECORD index: " << nIndex
                           << "\n";
                     std::string str_name; // name of sender OR recipient
@@ -2424,7 +2424,7 @@ bool OTRecordList::Populate()
                                         // that we care about.
                                         // Therefore, skip.
                                         //
-                                        otOut
+                                        otInfo
                                             << __FUNCTION__
                                             << ": Skipping 'sent payment' "
                                                "expired record. (We don't care "
@@ -2549,7 +2549,7 @@ bool OTRecordList::Populate()
                             }
                         }
                     }
-                    otOut << __FUNCTION__ << ": ADDED: Expired payment record "
+                    otInfo << __FUNCTION__ << ": ADDED: Expired payment record "
                           << (bOutgoing ? "(sent)" : "(received)")
                           << " (str_type: " << str_type.c_str() << ")\n";
 
@@ -2603,7 +2603,7 @@ bool OTRecordList::Populate()
           // ASSET ACCOUNT -- INBOX/OUTBOX + RECORD BOX
           // Loop through the Accounts.
           //
-    otOut << "================ " << __FUNCTION__
+    otInfo << "================ " << __FUNCTION__
           << ": Looping through the accounts in the wallet...\n";
     int32_t nAccountIndex = -1;
     for (auto& it_acct : m_accounts) {
@@ -2621,7 +2621,7 @@ bool OTRecordList::Populate()
         const String strNymID(theNymID);
         const String strNotaryID(theNotaryID);
         const String strInstrumentDefinitionID(theInstrumentDefinitionID);
-        otOut << "------------\n" << __FUNCTION__
+        otInfo << "------------\n" << __FUNCTION__
               << ": Account: " << nAccountIndex
               << ", ID: " << str_account_id.c_str() << "\n";
         const std::string str_nym_id(strNymID.Get());
@@ -2652,7 +2652,7 @@ bool OTRecordList::Populate()
         auto it_asset = m_assets.find(str_instrument_definition_id);
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
             (m_assets.end() == it_asset)) {
-            otOut << __FUNCTION__ << ": Skipping an account ("
+            otInfo << __FUNCTION__ << ": Skipping an account ("
                   << str_account_id.c_str()
                   << ") since its Nym, or Server, "
                      "or Asset Type wasn't on my list.\n";
@@ -2687,12 +2687,12 @@ bool OTRecordList::Populate()
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
-                    otOut
+                    otInfo
                         << __FUNCTION__
                         << ": Beginning loop through asset account INBOX...\n";
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                otOut << __FUNCTION__ << ": Inbox index: " << nInboxIndex
+                otInfo << __FUNCTION__ << ": Inbox index: " << nInboxIndex
                       << "\n";
                 bool bCanceled = false;
                 std::string str_name; // name of sender (since its in the
@@ -2882,7 +2882,7 @@ bool OTRecordList::Populate()
                 }
                 const std::string str_type(
                     pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
-                otOut << __FUNCTION__ << ": ADDED: incoming "
+                otInfo << __FUNCTION__ << ": ADDED: incoming "
                       << ((OTTransaction::pending == pBoxTrans->GetType())
                               ? "pending transfer"
                               : "receipt") << " (str_type: " << str_type.c_str()
@@ -2953,12 +2953,12 @@ bool OTRecordList::Populate()
             for (auto& it : pOutbox->GetTransactionMap()) {
                 ++nOutboxIndex; // (0 on first iteration.)
                 if (0 == nOutboxIndex)
-                    otOut
+                    otInfo
                         << __FUNCTION__
                         << ": Beginning loop through asset account OUTBOX...\n";
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                otOut << __FUNCTION__ << ": Outbox index: " << nOutboxIndex
+                otInfo << __FUNCTION__ << ": Outbox index: " << nOutboxIndex
                       << "\n";
                 std::string str_name; // name of recipient (since its in the
                                       // outbox.)
@@ -3062,7 +3062,7 @@ bool OTRecordList::Populate()
                 std::string str_type(
                     pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
                 if (0 == str_type.compare("pending")) str_type = "transfer";
-                otOut << __FUNCTION__ << ": ADDED: "
+                otInfo << __FUNCTION__ << ": ADDED: "
                       << ((OTTransaction::pending == pBoxTrans->GetType())
                               ? "pending"
                               : "ERROR")
@@ -3128,7 +3128,7 @@ bool OTRecordList::Populate()
                 ++nRecordIndex;
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                otOut << __FUNCTION__
+                otInfo << __FUNCTION__
                       << ": Account RECORD index: " << nRecordIndex << "\n";
                 bool bOutgoing = false;
                 bool bCanceled = false;
@@ -3523,7 +3523,7 @@ bool OTRecordList::Populate()
                     strTemp.Format("%" PRId64 "", lAmount);
                     str_amount = strTemp.Get();
                 }
-                otOut << __FUNCTION__ << ": ADDED: "
+                otInfo << __FUNCTION__ << ": ADDED: "
                       << ((pBoxTrans->GetType() != OTTransaction::pending)
                               ? ""
                               : (bOutgoing ? "sent" : "received"))
