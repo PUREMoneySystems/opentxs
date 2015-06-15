@@ -41,6 +41,7 @@
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
+#include <opentxs/client/OTServerConnection.hpp>
 #include <opentxs/core/Log.hpp>
 
 namespace opentxs
@@ -50,6 +51,11 @@ namespace opentxs
 #define OT_BOOL int32_t
 #endif
 
+bool OTAPI_Wrap::networkFailure()
+{
+    return OTServerConnection::networkFailure();
+}
+    
 // singleton object !!!
 static OTAPI_Exec singleton;
 static OTAPI_Exec* exec = &singleton;

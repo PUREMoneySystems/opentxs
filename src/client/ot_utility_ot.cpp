@@ -403,9 +403,15 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
 
     int32_t nRequestNum = OTAPI_Wrap::getNymbox(
         notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation
+        << ": getNymbox message failed due to network error.\n";
+        return -1;
+    }
     if (-1 == nRequestNum) {
         otOut << strLocation
-              << ": Failed to send getNymbox message due to error.\n";
+        << ": Failed to send getNymbox message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
@@ -428,6 +434,13 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& notaryID,
     //
     int32_t nResult =
         receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum, strLocation);
+    
+    if (OTAPI_Wrap::networkFailure())
+    {
+        otOut << strLocation
+        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+        return -1;
+    }
 
     //      otOut << strLocation << ": receiveReplySuccessLowLevel:
     // " << nResult << "\n";
@@ -536,6 +549,10 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& notaryID,
     bool bWasMsgSent = false;
     int32_t nGetNymbox = getNymboxLowLevel(
         notaryID, nymID, bWasMsgSent); // bWasMsgSent is output from this call.;
+    
+    if (OTAPI_Wrap::networkFailure())
+        return -1;
+    
     if (bWasMsgSent) {
         otWarn << strLocation
                << ": FYI: we just sent a getNymboxLowLevel msg. RequestNum: "
@@ -1655,7 +1672,7 @@ OT_UTILITY_OT int32_t
     // ReceiveReplyLowLevel returns null unless there was a string returned.
     // So we can directly check it for success...
 
-    return VerifyMessageSuccess(strReply);
+    return !OTAPI_Wrap::networkFailure() && VerifyMessageSuccess(strReply);
 }
 
 // Tries to receive a server reply
@@ -1682,7 +1699,7 @@ OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(const string& notaryID17,
         int64_t(nRequestNumber8), notaryID17, nymID);
     if (!VerifyStringVal(strResponseMessage)) {
         otOut << "ReceiveReplyLowLevel (" << IN_FUNCTION
-              << "): null server reply!\n";
+              << "): no server reply!\n";
         return "";
     }
     setLastReplyReceived(strResponseMessage);
@@ -1718,10 +1735,17 @@ OT_UTILITY_OT int32_t
     OTAPI_Wrap::FlushMessageBuffer();
 
     int32_t nResult = OTAPI_Wrap::getRequestNumber(notaryID, nymID);
+    
+    if (OTAPI_Wrap::networkFailure())
+    {
+        otOut << strLocation
+        << ": getRequestNumber message failed due to network error.\n";
+        return -1;
+    }
     if (-1 == nResult) // if error -1, that means it DIDN'T SEND (error)
     {
         otOut << strLocation
-              << ": Failed to send getRequestNumber message due to error.\n";
+        << ": Failed to send getRequestNumber message due to error.\n";
         return -1;
     }
     if (0 == nResult) // if 0 is returned, that also means it DIDN'T SEND (but
@@ -1739,6 +1763,7 @@ OT_UTILITY_OT int32_t
         // happened here. Here,
         // we couldn't even SEND our request, which is an error
     }
+    
     //
     // else it's >0  ==  successfully sent! (I BELIEVE this is 1, in this case,
     // every time, since you don't NEED a request number to CALL
@@ -1750,6 +1775,14 @@ OT_UTILITY_OT int32_t
     //
     int32_t nReturn =
         receiveReplySuccessLowLevel(notaryID, nymID, nResult, strLocation);
+    
+    if (OTAPI_Wrap::networkFailure())
+    {
+        otOut << strLocation
+        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+        return -1;
+    }
+    
     //      otOut << "IN getRequestNumber " <<
     // getLastReplyReceived());
 
@@ -1794,13 +1827,19 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
     int32_t nRequestNum = OTAPI_Wrap::getBoxReceipt(
         notaryID, nymID, accountID, nBoxType,
         strTransactionNum); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation
+        << ": getBoxReceipt message failed due to network error.\n";
+        return false;
+    }
     if (-1 == nRequestNum) {
         otOut << strLocation
-              << ": Failed to send getNymbox message due to error.\n";
+        << ": Failed to send getBoxReceipt message due to error.\n";
         return false;
     }
     if (0 == nRequestNum) {
-        otOut << strLocation << ": Didn't send getNymbox message, but NO error "
+        otOut << strLocation << ": Didn't send getBoxReceipt message, but NO error "
                                 "occurred, either. (In this case, SHOULD NEVER "
                                 "HAPPEN. Treating as Error.)\n";
         return false; // Even though '0' MEANS "didn't send, but no error" by
@@ -1825,6 +1864,13 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
         receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum, strLocation);
     otWarn << strLocation << ": nRequestNum: " << nRequestNum
            << " /  nReturn: " << nReturn << "\n";
+
+    if (OTAPI_Wrap::networkFailure())
+    {
+        otOut << strLocation
+        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+        return -1;
+    }
 
     //     int32_t nRemovedGetBoxReceipt =
     // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nRequestNum), notaryID,
@@ -2281,9 +2327,15 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getTransactionNumbers(
         notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
+    
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation
+        << ": getNymbox message failed due to network error.\n";
+        return -1;
+    }
     if (-1 == nRequestNum) {
         otOut << strLocation
-              << ": Failed to send getNymbox message due to error.\n";
+        << ": Failed to send getNymbox message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
@@ -2306,6 +2358,14 @@ OT_UTILITY_OT int32_t
     //
     int32_t nReturn = receiveReplySuccessLowLevel(notaryID, nymID, nRequestNum,
                                                   "getTransactionNumbers");
+    
+    if (OTAPI_Wrap::networkFailure())
+    {
+        otOut << strLocation
+        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+        return -1;
+    }
+
     //      otOut << "IN getTransactionNumbers " <<
     // getLastReplyReceived());
 
@@ -2841,9 +2901,15 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getAccountData(
         notaryID, nymID, accountID); // <===== ATTEMPT TO SEND MESSAGE;
+    
+    if (OTAPI_Wrap::networkFailure()) {
+        otOut << strLocation
+        << ": getAccountData message failed due to network error.\n";
+        return -1;
+    }
     if (-1 == nRequestNum) {
         otOut << strLocation
-              << ": Failed to send getAccountData message due to error.\n";
+        << ": Failed to send getAccountData message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
@@ -2869,6 +2935,14 @@ OT_UTILITY_OT int32_t
     int32_t nReturn = receiveReplySuccessLowLevel(
         notaryID, nymID, nRequestNum,
         "getInboxAccount"); // <============ RETURN VALUE;
+    
+    if (OTAPI_Wrap::networkFailure())
+    {
+        otOut << strLocation
+        << ": Failed to receiveReplySuccessLowLevel due to network error.\n";
+        return -1;
+    }
+
     if (nReturn < 0)        // error
     {
         otOut << strLocation << ": Error in getAccountData: " << nReturn

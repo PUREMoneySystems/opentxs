@@ -65,7 +65,8 @@ OTServerContract::OTServerContract()
 OTServerContract::OTServerContract(String& name, String& foldername,
                                    String& filename, String& strID) :
     Contract(name, foldername, filename, strID),
-    m_transportKey(nullptr)
+    m_transportKey(nullptr),
+    m_transportKeyLength(0)
 {
     m_nPort = 0;
 }
@@ -79,6 +80,8 @@ OTServerContract::~OTServerContract()
         //
         uint8_t * pKey = static_cast<uint8_t *>(m_transportKey);
         delete [] pKey;
+        m_transportKey = nullptr;
+        m_transportKeyLength = 0;
     }
 }
 
@@ -97,6 +100,11 @@ unsigned char* OTServerContract::GetTransportKey() const
     return m_transportKey;
 }
 
+size_t OTServerContract::GetTransportKeyLength() const
+{
+    return m_transportKeyLength;
+}
+    
 bool OTServerContract::DisplayStatistics(String& strContents) const
 {
     const String strID(m_ID);
@@ -239,9 +247,17 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         size_t outLen;
         m_transportKey = OTCrypto::It()->Base64Decode(
             transportKeyB64Trimmed.c_str(), &outLen, false);
+        
         if (outLen != TRANSPORT_KEY_SIZE) {
+            if (m_transportKey) {
+                delete m_transportKey;
+            }
+            m_transportKey = nullptr;
+            m_transportKeyLength = 0;
             return -1;
         }
+        m_transportKeyLength = outLen;
+        
         return 1;
     }
 

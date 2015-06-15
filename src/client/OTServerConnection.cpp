@@ -56,10 +56,11 @@ namespace opentxs
 {
 
 // static ---------------------------------------------------
-int OTServerConnection::s_linger       = CLIENT_SOCKET_LINGER;
-int OTServerConnection::s_send_timeout = CLIENT_SEND_TIMEOUT;
-int OTServerConnection::s_recv_timeout = CLIENT_RECV_TIMEOUT;
-
+int  OTServerConnection::s_linger          = CLIENT_SOCKET_LINGER;
+int  OTServerConnection::s_send_timeout    = CLIENT_SEND_TIMEOUT;
+int  OTServerConnection::s_recv_timeout    = CLIENT_RECV_TIMEOUT;
+bool OTServerConnection::s_bNetworkFailure = false;
+    
 int OTServerConnection::getLinger()
 {
     return s_linger;
@@ -89,6 +90,12 @@ void OTServerConnection::setRecvTimeout(int nIn)
 {
     s_recv_timeout = nIn;
 }
+ 
+// This returns m_bNetworkFailure
+bool OTServerConnection::networkFailure()
+{
+    return s_bNetworkFailure;
+}
     
 // end static -----------------------------------------------
 
@@ -108,6 +115,7 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
     , m_pNym(nullptr)
     , m_pServerContract(nullptr)
     , m_pClient(theClient)
+    , m_endpoint(endpoint)
 {
     if (!zsys_has_curve()) {
         Log::vError("Error: libzmq has no libsodium support");
@@ -123,8 +131,11 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
     // Set server public key.
     zsock_set_curve_serverkey_bin(socket_zmq, transportKey);
 
-    if (zsock_connect(socket_zmq, "%s", endpoint.c_str())) {
-        Log::vError("Failed to connect to %s\n", endpoint.c_str());
+    s_bNetworkFailure = false;
+    
+    if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
+        s_bNetworkFailure = true;
+        Log::vError("Failed to connect to %s\n", m_endpoint.c_str());
         OT_FAIL;
     }
 }
@@ -132,6 +143,40 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
 OTServerConnection::~OTServerConnection()
 {
     zsock_destroy(&socket_zmq);
+}
+
+    
+bool OTServerConnection::resetSocket()
+{
+    if (!m_pServerContract) {
+        otErr << __FUNCTION__ << ": Failed trying to reset socket due to missing server contract.\n";
+        return false;
+    }
+    
+    zsock_destroy(&socket_zmq);
+    socket_zmq = zsock_new_req(NULL);
+    
+    if (!socket_zmq) {
+        otErr << __FUNCTION__ << ": Failed trying to reset socket.\n";
+        return false;
+    }
+    
+    zsock_set_linger(socket_zmq, OTServerConnection::getLinger());
+    zsock_set_sndtimeo(socket_zmq, OTServerConnection::getSendTimeout());
+    zsock_set_rcvtimeo(socket_zmq, OTServerConnection::getRecvTimeout());
+
+    // Set new client public and secret key.
+    zcert_apply(zcert_new(), socket_zmq);
+    // Set server public key.
+    zsock_set_curve_serverkey_bin(socket_zmq, m_pServerContract->GetTransportKey());
+    
+    if (zsock_connect(socket_zmq, "%s", m_endpoint.c_str())) {
+        s_bNetworkFailure = true;
+        Log::vError("Failed to connect to %s\n", m_endpoint.c_str());
+        OT_FAIL;
+    }
+
+    return true;
 }
 
 // When the server sends a reply back with our new request number, we
@@ -198,24 +243,40 @@ bool OTServerConnection::send(const String& theString)
     if (!ascEnvelope.Exists()) {
         return false;
     }
+    
+    s_bNetworkFailure = false;
 
     int rc = zstr_send(socket_zmq, ascEnvelope.Get());
 
     if (rc != 0) {
+        s_bNetworkFailure = true;
         otErr << __FUNCTION__
-              << ": Failed, even with error correction and retries, "
-                 "while trying to send message to server.";
+              << ": Failed while trying to send message to server.\n";
+        
+        resetSocket();
+        
         return false;
     }
+//  else
+//      otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY SENT. \n";
 
+    
     std::string rawServerReply;
     bool bSuccessReceiving = receive(rawServerReply);
 
     if (!bSuccessReceiving) {
+        s_bNetworkFailure = true;
         otErr << __FUNCTION__ << ": Failed trying to receive expected reply "
                                  "from server.\n";
+        
+        resetSocket();
+        
         return false;
     }
+//    else
+//        otErr << __FUNCTION__ << ": DEBUGGING!!!! SUCCESSFULLY RECEIVED. \n";
+
+    
     OTASCIIArmor ascServerReply;
     ascServerReply.Set(rawServerReply.c_str());
 

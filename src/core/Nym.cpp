@@ -1699,7 +1699,9 @@ bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
     // map
     // matches the Notary ID that was passed in, then return TRUE.
     for (auto& it : m_mapRequestNum) {
+        
         if (strID == it.first) {
+
             // The call has succeeded
             bRetVal = true;
 

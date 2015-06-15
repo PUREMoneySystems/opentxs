@@ -59,6 +59,7 @@ using namespace std;
 
 // RETRIEVE NYM INTERMEDIARY FILES
 
+
 OT_MADE_EASY_OT int32_t
     MadeEasy::retrieve_nym(const string& strNotaryID, const string& strMyNymID,
                            bool& bWasMsgSent, bool bForceDownload)

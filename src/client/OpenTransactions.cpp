@@ -1326,8 +1326,10 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
     }
+    
     Nym* pNym = GetNym(NYM_ID, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
+    
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
     const String strNotaryID(NOTARY_ID);

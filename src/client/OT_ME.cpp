@@ -88,7 +88,7 @@ OT_ME::~OT_ME()
 {
     s_pMe = r_pPrev;
 }
-
+    
 typedef std::map<std::string, std::string> mapOfArguments;
 
 // int32_t    OT_CLI_GetArgsCount     (std::string str_Args);
@@ -236,6 +236,7 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
         bool msgWasSent = false;
         if (0 > MadeEasy::retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
                                        false)) {
+            
             otOut << "Error: cannot retrieve nym.\n";
             return false;
         }

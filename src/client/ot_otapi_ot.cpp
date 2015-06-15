@@ -97,7 +97,7 @@ OT_OTAPI_OT void OTAPI_Func::InitCustom()
     funcType = NO_FUNC;
 }
 
-OTAPI_Func::OTAPI_Func()
+OTAPI_Func::OTAPI_Func() 
 {
     // otOut << "(Version of OTAPI_Func with 0 arguments.)\n";
 
@@ -108,8 +108,9 @@ OTAPI_Func::~OTAPI_Func()
 {
 }
 
+
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID)
+                       const string& p_nymID)  
 {
     // otOut << "(Version of OTAPI_Func with 3 arguments.)\n";
 
@@ -133,6 +134,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_strParam)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 4 arguments.)\n";
 
@@ -181,6 +183,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_strParam,
                        const string& p_strData)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
@@ -231,6 +234,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_strParam,
                        int64_t p_lData)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
@@ -271,6 +275,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_nymID2,
                        const string& p_strData, const string& p_strData2)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 6 arguments.)\n";
     InitCustom();
@@ -340,6 +345,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, int64_t p_lData,
                        const string& p_strData2)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -385,6 +391,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
                        int64_t p_lData2)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -439,6 +446,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
                        const string& p_strData2)
+ 
+
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -493,6 +502,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_instrumentDefinitionID,
                        const string& p_basket, const string& p_accountID,
                        bool p_bBool, int32_t p_nTransNumsNeeded)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 8 arguments.)\n";
 
@@ -531,6 +541,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& currencyAcctID, const string& scale,
                        const string& minIncrement, const string& quantity,
                        const string& price, bool bSelling)
+ 
 {
     // otOut << "(Version of OTAPI_Func with 10 arguments.)\n";
 

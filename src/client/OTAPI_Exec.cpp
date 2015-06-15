@@ -2635,7 +2635,7 @@ bool OTAPI_Exec::IsNym_RegisteredAtServer(const std::string& NYM_ID,
 
     bool bSuccess = OTAPI()->IsNym_RegisteredAtServer(theNymID, theNotaryID);
 
-    return (bSuccess) ? true : false;
+    return bSuccess;
 }
 
 // Returns Nym data (based on NymID)

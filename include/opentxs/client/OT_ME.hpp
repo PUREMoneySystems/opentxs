@@ -336,6 +336,9 @@ public:
         const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT) const;
 
+    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
+    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
+    
 private:
     OT_ME(const OT_ME&);
     OT_ME& operator=(const OT_ME&);
@@ -345,6 +348,8 @@ private:
     OT_ME* r_pPrev; // For reference only. Do not delete.
     std::shared_ptr<OTScript> m_pScript;
 
+    bool m_bNetworkFailure;
+    
     bool HaveWorkingScript();
 
     bool Register_OTDB_With_Script();

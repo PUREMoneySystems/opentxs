@@ -80,6 +80,8 @@ public:
     void send(OTServerContract* pServerContract, Nym* pNym,
               const Message& theMessage);
     
+    bool resetSocket();
+    
     static int getLinger();
     static int getSendTimeout();
     static int getRecvTimeout();
@@ -87,6 +89,8 @@ public:
     static void setLinger(int nIn);
     static void setSendTimeout(int nIn);
     static void setRecvTimeout(int nIn);
+    
+    static bool networkFailure();    // This returns s_bNetworkFailure.
     
 private:
     bool send(const String&);
@@ -98,9 +102,14 @@ private:
     OTServerContract* m_pServerContract;
     OTClient* m_pClient;
     
+    std::string m_endpoint;
+    
     static int s_linger;
     static int s_send_timeout;
     static int s_recv_timeout;
+    // -----------------------------
+    // Used to signal network failure.
+    static bool s_bNetworkFailure;
 };
 
 } // namespace opentxs

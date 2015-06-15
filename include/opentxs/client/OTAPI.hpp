@@ -3663,6 +3663,15 @@ public:
     EXPORT static bool ResyncNymWithServer(const std::string& NOTARY_ID,
                                            const std::string& NYM_ID,
                                            const std::string& THE_MESSAGE);
+    
+    /** bool networkFailure. This is a simple bool that is set to false
+      just before any messages are sent to the server. If the send or
+      receive fails on the network level, this bool is set to true. So
+      you can always call it to discover if your last message failed
+      purely from network troubles.
+     */
+    EXPORT static bool networkFailure();
+    
     /** -----------------------------------------------------------
     // GET MESSAGE COMMAND TYPE
     //

@@ -58,6 +58,7 @@ public:
 
     EXPORT bool GetConnectInfo(String& strHostname, int32_t& nPort) const;
     EXPORT unsigned char* GetTransportKey() const;
+    EXPORT size_t GetTransportKeyLength() const;
     static zcert_t* LoadOrCreateTransportKey(const String& nymID);
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset or server contract. Meant for
@@ -77,6 +78,7 @@ protected:
     int32_t m_nPort;
     String m_strURL;
     unsigned char* m_transportKey;
+    size_t m_transportKeyLength;
 };
 
 } // namespace opentxs
