@@ -405,10 +405,10 @@ public:
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
 
     // So far not overridden anywhere (used to be OTTrade.)
-    EXPORT virtual bool VerifySignature(
-        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const;
-    EXPORT virtual bool VerifySigAuthent(
-        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const;
+    EXPORT virtual bool VerifySignature(const Nym& theNym,
+                                        const OTPasswordData* pPWData = nullptr) const;
+    EXPORT virtual bool VerifySigAuthent(const Nym& theNym,
+                                         const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
                               const OTPasswordData* pPWData = nullptr) const;

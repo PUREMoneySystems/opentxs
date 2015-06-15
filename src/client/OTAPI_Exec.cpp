@@ -72,6 +72,8 @@
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
+#include <opentxs/ext/InstantiateContract.hpp>
+
 #include <memory>
 #include <sstream>
 
@@ -904,6 +906,52 @@ bool OTAPI_Exec::RevokeSubcredential(const std::string& NYM_ID,
         }
     }
     return false;
+}
+    
+std::string OTAPI_Exec::GetSignerNymID(
+    const std::string& str_Contract) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (str_Contract.empty()) {
+        otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
+        return "";
+    }
+    std::string str_Trim(str_Contract);
+    std::string str_Trim2 = String::trim(str_Trim);
+    String strContract(str_Trim2.c_str());
+    
+    if (strContract.GetLength() < 2) {
+        otOut << __FUNCTION__ << ": Empty contract passed in!\n";
+        return "";
+    }
+    //-----------------------------------
+    Contract * pContract = ::InstantiateContract(strContract);
+
+    if (nullptr == pContract) {
+        otErr << __FUNCTION__ << ": Failed trying to instantiate contract.\n";
+        return "";
+    }
+    //-----------------------------------
+    // MUST delete pContract below this point, before returning.
+    //
+    const Nym * pNym = pContract->GetContractPublicNym();
+
+    if (nullptr == pNym) {
+        otErr << __FUNCTION__ << ": Failed trying to retrieve signer nym from contract.\n";
+        delete pContract;
+        return "";
+    }
+    //-----------------------------------
+    String strContractNymID;
+    pNym->GetIdentifier(strContractNymID);
+    std::string pBuf = strContractNymID.Get();
+    delete pContract;
+    return pBuf;
 }
 
 std::string OTAPI_Exec::CalculateAssetContractID(

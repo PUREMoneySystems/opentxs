@@ -43,8 +43,7 @@
 //
 // If you want to instantiate a contract that you already have in string form,
 // this function will figure out what kind of contract it is, and instantiate
-// the
-// right subclass, then load it up and return it.
+// the right subclass, then load it up and return it.
 //
 // CALLER IS RESPONSIBLE to cleanup!
 
@@ -147,12 +146,14 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
         //
         else if (strFirstLine.Contains("-----BEGIN SIGNED CONTRACT-----")) {
             if (strContract.Contains(
-                    "<notaryProviderContract version=\"1.0\">")) {
+                    "<notaryProviderContract")) {
                 pContract = new OTServerContract();
                 OT_ASSERT(nullptr != pContract);
             }
             else if (strContract.Contains(
-                           "<instrumentDefinition version=\"1.0\">")) {
+                           "<instrumentDefinition") ||
+                     strContract.Contains(
+                           "<unitTypeDefinition")) {
                 pContract = new AssetContract();
                 OT_ASSERT(nullptr != pContract);
             }

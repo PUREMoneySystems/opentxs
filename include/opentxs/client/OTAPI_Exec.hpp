@@ -473,6 +473,9 @@ public:
         const std::string& str_Contract) const;
     EXPORT std::string CalculateServerContractID(
         const std::string& str_Contract) const;
+    
+    EXPORT std::string GetSignerNymID(
+        const std::string& str_Contract) const;
 
     // Use these below functions to get the new contract ITSELF, using its ID
     // that was returned by the above two functions:

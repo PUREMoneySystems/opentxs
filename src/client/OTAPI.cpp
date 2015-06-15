@@ -363,6 +363,11 @@ bool OTAPI_Wrap::RevokeSubcredential(const std::string& NYM_ID,
 {
     return Exec()->RevokeSubcredential(NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
 }
+    
+std::string OTAPI_Wrap::GetSignerNymID(const std::string& str_Contract)
+{
+    return Exec()->GetSignerNymID(str_Contract);
+}
 
 std::string OTAPI_Wrap::CalculateAssetContractID(
     const std::string& str_Contract)
