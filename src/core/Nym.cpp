@@ -3957,7 +3957,7 @@ bool Nym::SaveCredentialIDs()
                                          : OTFolders::Pubcred().Get();
 
             if (!OTDB::StorePlainString(strOutput.Get(), str_Folder,
-                                        strFilename.Get())) {
+                                        strNymID.Get(), strFilename.Get())) {
                 otErr << __FUNCTION__ << ": Failure trying to store "
                       << (HasPrivateKey() ? "private" : "public")
                       << " credential list for Nym: " << strNymID << "\n";
@@ -3995,9 +3995,9 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
                                             : OTFolders::Pubcred().Get();
     const char* szFilename = strFilename.Get();
 
-    if (OTDB::Exists(szFoldername, szFilename)) {
+    if (OTDB::Exists(szFoldername, strNymID.Get(), szFilename)) {
         String strFileContents(
-            OTDB::QueryPlainString(szFoldername, szFilename));
+            OTDB::QueryPlainString(szFoldername, strNymID.Get(), szFilename));
 
         // The credential list file is like the nymfile except with ONLY
         // credential IDs inside.
@@ -5700,7 +5700,7 @@ bool Nym::DoesCertfileExist(const String& strNymID)
     return OTDB::Exists(OTFolders::Cert().Get(),
                         strNymID.Get()) || // Old-school.
            OTDB::Exists(OTFolders::Credential().Get(),
-                        strCredListFile.Get()); // New-school.
+                        strNymID.Get(), strCredListFile.Get()); // New-school.
 }
 
 bool Nym::HasPublicKey() const

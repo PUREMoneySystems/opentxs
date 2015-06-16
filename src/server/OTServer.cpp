@@ -96,89 +96,72 @@ void askInteractively(std::string& strContract, std::string& strNotaryID,
                       std::string& strCert, std::string& strNymID,
                       std::string& strCachedKey)
 {
-    const char* szInstructions =
-        "\n\n ==> WARNING: Main file not found. To create it, continue this "
-        "process now...\n\n"
-        "REQUIREMENTS: You must already have a wallet, where you have created "
-        "one Nym.\n"
-        "This will be a temporary wallet only, for the purpose of generating "
-        "the server\n"
-        "nym and the master key for that server nym. You can erase the "
-        "contents of the\n"
-        "~/.ot/client_data folder once we are done with this process, and the "
-        "OT client\n"
-        "will just create a fresh wallet to replace it. In other words, don't "
-        "continue\n"
-        "to use the temporary wallet as a REAL wallet, since it contains the "
-        "master\n"
-        "key and private key for your new server nym. We're using a temporary "
-        "client-side\n"
-        "wallet for the convenience of generating the server nym--we'll copy "
-        "it over to \n"
-        "the server side, and then we'll wipe the temp wallet and start with a "
-        "fresh one\n"
-        "once this process is done.\n"
-        "(FYI, you can decode an armored wallet by using the 'opentxs decode' "
-        "command.)\n"
-        "-- You must also have the new Server Nym's \"NymID\", which should be "
-        "found in the\nwallet.\n"
-        "-- When you have created your server Nym (using your temp wallet) you "
-        "will want to\n"
-        "copy the credentials from the temp wallet to your new server:\n"
-        "    cp -R ~/.ot/client_data/credentials ~/.ot/server_data/ \n"
-        "-- You must already have a signed server contract. (*** To get one, "
-        "copy the\n"
-        "UNSIGNED version of the sample server contract, which is named "
-        "'localhost.xml',\n"
-        "and then change the tags as you see fit. Then use the same Nym, the "
-        "server Nym,\n"
-        "to sign the server contract, via the 'opentxs newserver' "
-        "command.***)\n"
-        "You must also have the server ID for the above contract, which the "
-        "newserver\n"
-        "command will output at the same time it outputs the newly-signed "
-        "server contract.\n"
-        "=> Note that the Nym who signs the server contract MUST be the same "
-        "Nym that you\n"
-        "provide HERE, for this process now...)\n"
-        "-- Finally, you must provide the cached key from the same wallet "
-        "where you brought\n"
-        "the Nym from (In this case, be careful to only copy the "
-        "base64-encoded portion\n"
-        "of the cached key from the wallet, and not the XML tags around it!) "
-        "We\n"
-        "recommend you create a blank wallet entirely for this purpose (of "
-        "generating\n"
-        "that cached key and server Nym, to be used for your new OT server.) "
-        "Then erase it\nonce this process is done.\n"
+    const char * szInstructions =
+        "\n\n ==> WARNING: Main file not found. To create it, continue this process now...\n\n"
+        "REQUIREMENTS:\n"
+        "-- You must already have a temporary wallet, where you have created one Nym.\n"
+        "   (That Nym will be the Signer Nym for your new Notary server.)\n"
+        "   And FYI, you should delete the temporary wallet after the new notary\n"
+        "   is successfully up and running. (Do NOT use it as a real wallet.)\n"
+        "-- Create a new notary server contract. The easiest way is to use\n"
+        "   the Moneychanger GUI to do this. (Otherwise, 'opentxs newserver')\n"
+        "-- The Moneychanger GUI will create a Zipfile containing the new\n"
+        "   Signer Nym's credentials.\n"
+        "-- The Moneychanger GUI will also create a text file containing:\n"
+        "   1. The new Notary ID.\n"
+        "   2. The Signer Nym ID.\n"
+        "   3. The cachedKey (from client_data/wallet.xml)\n"
+        "   4. The new Notary Server Contract itself.\n"
+        "\n(If you don't use Moneychanger to create the notary server contract, then\n"
+        "you will have to pull together the above pieces by hand.)\n"
+        "FYI, on Linux, the wallet.xml is found in: ~/.ot/client_data\n"
+        "On a Mac:\n/Users/username/Library/Application Support/OpenTransactions/client_data\n\n"
         " ==> WARNING: Main file not found. To create it, continue this "
-        "process now...\n";
+        "process now...\n\n";
 
     Log::Output(0, szInstructions);
     Log::Output(0, "Enter the NotaryID for your server contract: ");
     strNotaryID = OT_CLI_ReadLine();
-    Log::Output(0, "Enter the Server Nym ID (the NymID of the Nym who "
-                   "signed the server contract): ");
+    Log::Output(0, "Enter the Signer Nym ID: ");
     strNymID = OT_CLI_ReadLine();
-    Log::Output(0, "Paste the cached key (ONLY the base64-encoded portion) "
-                   "below, from wallet.xml for that Nym.\n"
-                   "Terminate with '~' on a line by itself.\n\n");
+    Log::Output(0, "Paste the cachedKey (ONLY the base64-encoded portion) below. It can\n"
+                   "be found by pasting the wallet.xml contents into 'opentxs decode'\n"
+                   "MORE EASILY, the cachedKey is found in the New_Notary_Creation_File.txt\n"
+                   "that is automatically generated by Moneychanger when creating a new\n"
+                   "notary server contract.\n\n"
+                   "Paste the cachedKey below. Terminate with '~' on a line by itself.\n\n");
 
     strCachedKey = OT_CLI_ReadUntilEOF();
-    Log::Output(0, "Paste the contents of the server Nym's certfile, "
-                   "including public/PRIVATE, below.\n"
-                   "NOTE: LEAVE THIS BLANK unless you REALLY want to use the "
-                   "OLD system. If you leave this\n"
-                   "blank (preferred), it will instead use the new "
-                   "credentials system. (Just make sure\n"
-                   "you copied over the \"credentials\" folder, as described "
-                   "above, since we're about to\n"
-                   "use it, if you leave this blank.)\n"
-                   "Terminate with '~' on a line by itself.\n\n");
-
-    strCert = OT_CLI_ReadUntilEOF();
+    
+//    Log::Output(0, "Paste the contents of the server Nym's certfile, "
+//                   "including public/PRIVATE, below.\n"
+//                   "NOTE: LEAVE THIS BLANK unless you REALLY want to use the "
+//                   "OLD system. If you leave this\n"
+//                   "blank (preferred), it will instead use the new "
+//                   "credentials system. (Just make sure\n"
+//                   "you copied over the \"credentials\" folder, as described "
+//                   "above, since we're about to\n"
+//                   "use it, if you leave this blank.)\n"
+//                   "Terminate with '~' on a line by itself.\n\n");
+//    strCert = OT_CLI_ReadUntilEOF();
+    
+    std::string str_formed_path;
+    OTDB::FormPathString(str_formed_path, OTFolders::Credential().Get(),
+                         strNymID.c_str());
+    Log::Output(0, "---------------------------------------------------------\n");
+    Log::Output(0, "===> Next, create this folder on your system:\n");
+    Log::Output(0, str_formed_path.c_str());
+    Log::Output(0, "\n\nOnce the above folder is created, unzip this file inside it:\nNew_Notary_SignerNym_Credentials.zip\n\n");
+    Log::Output(0, "NOTE: That's the Zipfile that Moneychanger created. If you didn't use\n"
+                "Moneychanger, then you need to copy the Signer Nym's credentials by hand from\n"
+                "the client_data/credentials folder into the server_data/credentials folder.\n\n"
+                "Once the files are in that folder, press Enter to continue...");
+    
+    strCert = OT_CLI_ReadLine();
+    strCert = "";
+    
     // signed server contract
-    Log::Output(0, "Paste the complete, signed, server contract below. (You "
+    Log::Output(0, "\nPaste the complete, signed, server contract below. (You "
                    "must already have it.)\n"
                    "Terminate with '~' on a line by itself.\n\n");
 

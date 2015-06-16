@@ -1692,7 +1692,7 @@ bool OT_API::Wallet_ChangePassphrase() const
                         strOutput.Exists()) {
                         if (!OTDB::StorePlainString(
                                 strOutput.Get(), OTFolders::Credential().Get(),
-                                strFilename.Get())) {
+                                strNymID.Get(), strFilename.Get())) {
                             otErr << __FUNCTION__
                                   << ": After converting credentials to "
                                      "new master key, failure trying to "

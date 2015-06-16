@@ -287,7 +287,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     strOutput.Exists())
                     bStoredList = OTDB::StorePlainString(
                         strOutput.Get(), OTFolders::Pubcred().Get(),
-                        strFilename.Get());
+                        str_nym_id, strFilename.Get());
                 if (!bStoredList)
                     Log::vError("%s: registerNymResponse: Failed "
                                 "trying to armor or store: %s\n",

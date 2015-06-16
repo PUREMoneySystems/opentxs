@@ -1648,8 +1648,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                         // We successfully loaded the cachedKey from file, so
-                        // let's SET it
-                        // as the cached key globally...
+                        // let's SET it as the cached key globally...
                         //
                         OTCachedKey::It()->SetCachedKey(ascCachedKey);
 
@@ -2013,7 +2012,7 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
                 strOutput.Exists()) {
                 if (!OTDB::StorePlainString(strOutput.Get(),
                                             OTFolders::Credential().Get(),
-                                            strFilename.Get())) {
+                                            strNymID.Get(), strFilename.Get())) {
                     otErr << __FUNCTION__ << ": Failure trying to store "
                           << (theNym.HasPrivateKey() ? "private" : "public")
                           << " credential list for Nym: " << strNymID << "\n";

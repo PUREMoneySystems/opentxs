@@ -2909,7 +2909,7 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
                         strOutput.Exists())
                         bStoredList = OTDB::StorePlainString(
                             strOutput.Get(), OTFolders::Pubcred().Get(),
-                            strFilename.Get());
+                            str_nym_id, strFilename.Get());
                     if (!bStoredList)
                         otErr << __FUNCTION__
                               << ": Failed trying to armor or store "

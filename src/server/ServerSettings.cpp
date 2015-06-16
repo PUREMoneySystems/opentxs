@@ -61,7 +61,7 @@ bool ServerSettings::__admin_usage_credits =
 bool ServerSettings::__admin_server_locked =
     false; // Is server currently locked to non-override Nyms?
 bool ServerSettings::__cmd_usage_credits =
-    false; // Command for setting / viewing usage credits.
+    true; // Command for setting / viewing usage credits. (Keep this true even if usage credits are turned off. Otherwise the users won't get a server response when they ask it for the policy.)
 bool ServerSettings::__cmd_issue_asset = true;
 bool ServerSettings::__cmd_get_contract = true;
 bool ServerSettings::__cmd_check_notary_id = true;
