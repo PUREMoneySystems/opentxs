@@ -841,9 +841,30 @@ public:
                            // anytime
         String& strOutput) const;
 
+    EXPORT bool SmartContract_SetDates(
+        const String& THE_CONTRACT, // The contract, about to have the dates
+                                    // changed on it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        time64_t VALID_FROM,             // Default (0 or nullptr) == NOW
+        time64_t VALID_TO,               // Default (0 or nullptr) == no expiry / cancel
+                                         // anytime.
+        String& strOutput) const;
+
     EXPORT bool SmartContract_AddBylaw(
         const String& THE_CONTRACT, // The contract, about to have the bylaw
                                     // added to it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& BYLAW_NAME, // The Bylaw's NAME as referenced in the
+                                  // smart contract. (And the scripts...)
+        String& strOutput) const;
+
+    EXPORT bool SmartContract_RemoveBylaw(
+        const String& THE_CONTRACT, // The contract, about to have the bylaw
+                                    // removed from it.
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
                                          // cause a save.)
@@ -864,8 +885,33 @@ public:
         const String& SOURCE_CODE, // The actual source code for the clause.
         String& strOutput) const;
 
-    EXPORT bool SmartContract_AddVariable(
+    EXPORT bool SmartContract_UpdateClause(
         const String& THE_CONTRACT, // The contract, about to have the clause
+                                    // updated on it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& BYLAW_NAME,  // Should already be on the contract. (This
+                                   // way we can find it.)
+        const String& CLAUSE_NAME, // The Clause's name as referenced in the
+                                   // smart contract. (And the scripts...)
+        const String& SOURCE_CODE, // The actual source code for the clause.
+        String& strOutput) const;
+
+    EXPORT bool SmartContract_RemoveClause(
+        const String& THE_CONTRACT, // The contract, about to have the clause
+                                    // removed from it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& BYLAW_NAME,  // Should already be on the contract. (This
+                                   // way we can find it.)
+        const String& CLAUSE_NAME, // The Clause's name as referenced in the
+                                   // smart contract. (And the scripts...)
+        String& strOutput) const;
+
+    EXPORT bool SmartContract_AddVariable(
+        const String& THE_CONTRACT, // The contract, about to have the variable
                                     // added to it.
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
@@ -882,9 +928,21 @@ public:
                                   // "true" or "false" are expected here in
                                   // order to convert to a bool.
         String& strOutput) const;
+    
+    EXPORT bool SmartContract_RemoveVariable(
+        const String& THE_CONTRACT, // The contract, about to have the variable
+                                    // removed from it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& BYLAW_NAME, // Should already be on the contract. (This
+                                  // way we can find it.)
+        const String& VAR_NAME,   // The Variable's name as referenced in the
+                                  // smart contract. (And the scripts...)
+        String& strOutput) const;
 
     EXPORT bool SmartContract_AddCallback(
-        const String& THE_CONTRACT, // The contract, about to have the clause
+        const String& THE_CONTRACT, // The contract, about to have the callback
                                     // added to it.
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
@@ -898,8 +956,21 @@ public:
                                      // by the callback. (Must exist.)
         String& strOutput) const;
 
+    EXPORT bool SmartContract_RemoveCallback(
+        const String& THE_CONTRACT, // The contract, about to have the callback
+                                    // removed from it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& BYLAW_NAME,    // Should already be on the contract. (This
+                                     // way we can find it.)
+        const String& CALLBACK_NAME, // The Callback's name as referenced in
+                                     // the smart contract. (And the
+                                     // scripts...)
+        String& strOutput) const;
+
     EXPORT bool SmartContract_AddHook(
-        const String& THE_CONTRACT, // The contract, about to have the clause
+        const String& THE_CONTRACT, // The contract, about to have the hook
                                     // added to it.
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
@@ -914,8 +985,24 @@ public:
                                    // on the same hook.)
         String& strOutput) const;
 
+    EXPORT bool SmartContract_RemoveHook(
+        const String& THE_CONTRACT, // The contract, about to have the hook
+                                    // removed from it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& BYLAW_NAME,  // Should already be on the contract. (This
+                                   // way we can find it.)
+        const String& HOOK_NAME,   // The Hook's name as referenced in the smart
+                                   // contract. (And the scripts...)
+        const String& CLAUSE_NAME, // The actual clause that will be triggered
+                                   // by the hook. (You can call this multiple
+                                   // times, and have multiple clauses trigger
+                                   // on the same hook.)
+        String& strOutput) const;
+
     EXPORT bool SmartContract_AddParty(
-        const String& THE_CONTRACT, // The contract, about to have the bylaw
+        const String& THE_CONTRACT, // The contract, about to have the party
                                     // added to it.
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
@@ -926,8 +1013,18 @@ public:
                                   // this party. Need Agent NAME.
         String& strOutput) const;
 
+    EXPORT bool SmartContract_RemoveParty(
+        const String& THE_CONTRACT, // The contract, about to have the party
+                                    // removed from it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& PARTY_NAME, // The Party's NAME as referenced in the
+                                  // smart contract. (And the scripts...)
+        String& strOutput) const;
+
     EXPORT bool SmartContract_AddAccount(
-        const String& THE_CONTRACT, // The contract, about to have the clause
+        const String& THE_CONTRACT, // The contract, about to have the account
                                     // added to it.
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
@@ -939,6 +1036,18 @@ public:
         const String& INSTRUMENT_DEFINITION_ID, // Instrument Definition ID for
                                                 // the
                                                 // Account.
+        String& strOutput) const;
+
+    EXPORT bool SmartContract_RemoveAccount(
+        const String& THE_CONTRACT, // The contract, about to have the account
+                                    // removed from it.
+        const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                         // signing at this point is only to
+                                         // cause a save.)
+        const String& PARTY_NAME, // The Party's NAME as referenced in the
+                                  // smart contract. (And the scripts...)
+        const String& ACCT_NAME,  // The Account's name as referenced in the
+                                  // smart contract
         String& strOutput) const;
 
     EXPORT int32_t SmartContract_CountNumsNeeded(

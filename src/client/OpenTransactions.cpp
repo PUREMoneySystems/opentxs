@@ -3366,13 +3366,13 @@ bool OT_API::Create_SmartContract(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTSmartContract* pContract = new OTSmartContract();
+    OTSmartContract* pContract = new OTSmartContract;
     OT_ASSERT_MSG(nullptr != pContract,
                   "OT_API::Create_SmartContract: ASSERT "
                   "while trying to instantiate blank smart "
                   "contract.\n");
     if (!pContract->SetDateRange(VALID_FROM, VALID_TO)) {
-        otOut << "OT_API::Create_SmartContract: Failed trying to set date "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
                  "range.\n";
         return false;
     }
@@ -3383,8 +3383,44 @@ bool OT_API::Create_SmartContract(
     return true;
 }
 
+bool OT_API::SmartContract_SetDates(
+    const String& THE_CONTRACT, // The contract, about to have the dates
+                                // changed on it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    time64_t VALID_FROM,             // Default (0 or nullptr) == NOW
+    time64_t VALID_TO,               // Default (0 or nullptr) == no expiry / cancel anytime.
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    
+    std::unique_ptr<OTCronItem> pContract(
+        OTCronItem::NewCronItem(THE_CONTRACT));
+    if (!pContract) {
+        otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
+              << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    if (!pContract->SetDateRange(VALID_FROM, VALID_TO)) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to set date "
+                 "range.\n";
+        return false;
+    }
+    pContract->ReleaseSignatures();
+    pContract->SignContract(*pNym);
+    pContract->SaveContract();
+    strOutput.Release();
+    pContract->SaveContractRaw(strOutput);
+    return true;
+}
+
 bool OT_API::SmartContract_AddParty(
-    const String& THE_CONTRACT, // The contract, about to have the bylaw added
+    const String& THE_CONTRACT, // The contract, about to have the party added
                                 // to it.
     const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                      // signing at this point is only to cause
@@ -3402,7 +3438,7 @@ bool OT_API::SmartContract_AddParty(
     // cleanup.)
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
-    if (nullptr == pContract) {
+    if (!pContract) {
         otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
@@ -3441,8 +3477,47 @@ bool OT_API::SmartContract_AddParty(
     return true;
 }
 
+bool OT_API::SmartContract_RemoveParty(
+    const String& THE_CONTRACT, // The contract, about to have the party removed
+                                // from it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& PARTY_NAME, // The Party's NAME as referenced in the smart
+                              // contract. (And the scripts...)
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (!pContract) {
+        otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
+              << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_party_name(PARTY_NAME.Get());
+
+    if (pContract->RemoveParty(str_party_name))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
+}
+
 bool OT_API::SmartContract_AddAccount(
-    const String& THE_CONTRACT,      // The contract, about to have the clause
+    const String& THE_CONTRACT,      // The contract, about to have the account
                                      // added to it.
     const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                      // signing at this point is only to cause
@@ -3505,6 +3580,56 @@ bool OT_API::SmartContract_AddAccount(
     strOutput.Release();
     pContract->SaveContractRaw(strOutput);
     return true;
+}
+
+bool OT_API::SmartContract_RemoveAccount(
+    const String& THE_CONTRACT,      // The contract, about to have the account
+                                     // removed from it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& PARTY_NAME, // The Party's NAME as referenced in the smart
+                              // contract. (And the scripts...)
+    const String& ACCT_NAME,  // The Account's name as referenced in the smart
+                              // contract
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::SmartContract_RemoveAccount: Error loading "
+                 "smart contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_party_name(PARTY_NAME.Get());
+
+    OTParty* pParty = pContract->GetParty(str_party_name);
+
+    if (nullptr == pParty) {
+        otOut << "OT_API::SmartContract_RemoveAccount: Failure: Party "
+                 "doesn't exist. \n";
+        return false;
+    }
+    const std::string str_name(ACCT_NAME.Get());
+
+    if (pParty->RemoveAccount(str_name))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
 }
 
 int32_t OT_API::SmartContract_CountNumsNeeded(
@@ -3851,8 +3976,50 @@ bool OT_API::SmartContract_AddBylaw(
     return true;
 }
 
+    
+    
+    
+bool OT_API::SmartContract_RemoveBylaw(
+    const String& THE_CONTRACT, // The contract, about to have the bylaw removed
+                                // from it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& BYLAW_NAME, // The Bylaw's NAME as referenced in the smart
+                              // contract. (And the scripts...)
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::SmartContract_RemoveBylaw: Error loading smart "
+                 "contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_bylaw_name(BYLAW_NAME.Get());
+
+    if (pContract->RemoveBylaw(str_bylaw_name))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
+}
+
 bool OT_API::SmartContract_AddHook(
-    const String& THE_CONTRACT,      // The contract, about to have the clause
+    const String& THE_CONTRACT,      // The contract, about to have the hook
                                      // added to it.
     const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                      // signing at this point is only to cause
@@ -3906,8 +4073,63 @@ bool OT_API::SmartContract_AddHook(
     return true;
 }
 
+bool OT_API::SmartContract_RemoveHook(
+    const String& THE_CONTRACT,      // The contract, about to have the hook
+                                     // removed from it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& BYLAW_NAME,  // Should already be on the contract. (This way
+                               // we can find it.)
+    const String& HOOK_NAME,   // The Hook's name as referenced in the smart
+                               // contract. (And the scripts...)
+    const String& CLAUSE_NAME, // The actual clause that will be triggered by
+                               // the hook. (You can call this multiple times,
+                               // and have multiple clauses trigger on the
+                               // same hook.)
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::SmartContract_RemoveHook: Error loading smart "
+                 "contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_bylaw_name(BYLAW_NAME.Get());
+    
+    OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
+
+    if (nullptr == pBylaw) {
+        otOut << "OT_API::SmartContract_RemoveHook: Failure: Bylaw "
+                 "doesn't exist: " << str_bylaw_name << " \n";
+        return false;
+    }
+    
+    const std::string str_name(HOOK_NAME.Get()), str_clause(CLAUSE_NAME.Get());
+
+    if (pBylaw->RemoveHook(str_name, str_clause))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
+}
+
 bool OT_API::SmartContract_AddCallback(
-    const String& THE_CONTRACT,      // The contract, about to have the clause
+    const String& THE_CONTRACT,      // The contract, about to have the callback
                                      // added to it.
     const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                      // signing at this point is only to cause
@@ -3966,6 +4188,56 @@ bool OT_API::SmartContract_AddCallback(
     return true;
 }
 
+bool OT_API::SmartContract_RemoveCallback(
+    const String& THE_CONTRACT,      // The contract, about to have the callback
+                                     // removed from it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& BYLAW_NAME,    // Should already be on the contract. (This way
+                                 // we can find it.)
+    const String& CALLBACK_NAME, // The Callback's name as referenced in the
+                                 // smart contract. (And the scripts...)
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::SmartContract_RemoveCallback: Error loading "
+                 "smart contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_bylaw_name(BYLAW_NAME.Get());
+
+    OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
+
+    if (nullptr == pBylaw) {
+        otOut << "OT_API::SmartContract_RemoveCallback: Failure: Bylaw "
+                 "doesn't exist: " << str_bylaw_name << " \n";
+        return false;
+    }
+    const std::string str_name(CALLBACK_NAME.Get());
+
+    if (pBylaw->RemoveCallback(str_name))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
+}
+
 bool OT_API::SmartContract_AddClause(
     const String& THE_CONTRACT,      // The contract, about to have the clause
                                      // added to it.
@@ -3987,7 +4259,7 @@ bool OT_API::SmartContract_AddClause(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::SmartContract_AddClause: Error loading "
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
                  "smart contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -3996,7 +4268,7 @@ bool OT_API::SmartContract_AddClause(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::SmartContract_AddClause: Failure: Bylaw "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
                  "doesn't exist: " << str_bylaw_name
               << " \n Input contract: \n\n" << THE_CONTRACT << "\n\n";
         return false;
@@ -4004,14 +4276,14 @@ bool OT_API::SmartContract_AddClause(
     const std::string str_name(CLAUSE_NAME.Get()), str_code(SOURCE_CODE.Get());
 
     if (nullptr != pBylaw->GetClause(str_name)) {
-        otOut << "OT_API::SmartContract_AddClause: Failed adding: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed adding: "
                  "clause is already there with that name (" << str_name
               << ") on "
                  "bylaw: " << str_bylaw_name << " \n";
         return false;
     }
     if (!pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
-        otOut << "OT_API::SmartContract_AddClause: Failed trying to "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to "
                  "add clause (" << str_name << ") to bylaw: " << str_bylaw_name
               << " \n";
         return false;
@@ -4026,8 +4298,111 @@ bool OT_API::SmartContract_AddClause(
     return true;
 }
 
-bool OT_API::SmartContract_AddVariable(
+bool OT_API::SmartContract_UpdateClause(
     const String& THE_CONTRACT,      // The contract, about to have the clause
+                                     // updated on it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& BYLAW_NAME,  // Should already be on the contract. (This way
+                               // we can find it.)
+    const String& CLAUSE_NAME, // The Clause's name as referenced in the smart
+                               // contract. (And the scripts...)
+    const String& SOURCE_CODE, // The actual source code for the clause.
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                 "smart contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_bylaw_name(BYLAW_NAME.Get());
+
+    OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
+
+    if (nullptr == pBylaw) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                 "doesn't exist: " << str_bylaw_name
+              << " \n Input contract: \n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_name(CLAUSE_NAME.Get()), str_code(SOURCE_CODE.Get());
+
+    if (pBylaw->UpdateClause(str_name, str_code))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
+}
+
+bool OT_API::SmartContract_RemoveClause(
+    const String& THE_CONTRACT,      // The contract, about to have the clause
+                                     // removed from it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& BYLAW_NAME,  // Should already be on the contract. (This way
+                               // we can find it.)
+    const String& CLAUSE_NAME, // The Clause's name as referenced in the smart
+                               // contract. (And the scripts...)
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                 "smart contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_bylaw_name(BYLAW_NAME.Get());
+
+    OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
+
+    if (nullptr == pBylaw) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                 "doesn't exist: " << str_bylaw_name
+              << " \n Input contract: \n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_name(CLAUSE_NAME.Get());
+
+    if (pBylaw->RemoveClause(str_name))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+
+    return false;
+}
+
+bool OT_API::SmartContract_AddVariable(
+    const String& THE_CONTRACT,      // The contract, about to have the variable
                                      // added to it.
     const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                      // signing at this point is only to cause
@@ -4053,7 +4428,7 @@ bool OT_API::SmartContract_AddVariable(
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
-        otOut << "OT_API::SmartContract_AddVariable: Error loading "
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
                  "smart contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
@@ -4062,7 +4437,7 @@ bool OT_API::SmartContract_AddVariable(
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
-        otOut << "OT_API::SmartContract_AddVariable: Failure: Bylaw "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
                  "doesn't exist: " << str_bylaw_name << " \n";
         return false;
     }
@@ -4070,7 +4445,7 @@ bool OT_API::SmartContract_AddVariable(
         str_type(VAR_TYPE.Get()), str_value(VAR_VALUE.Get());
 
     if (nullptr != pBylaw->GetVariable(str_name)) {
-        otOut << "OT_API::SmartContract_AddVariable: Failure: "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: "
                  "Variable (" << str_name
               << ") already exists on bylaw: " << str_bylaw_name << " \n";
         return false;
@@ -4093,7 +4468,7 @@ bool OT_API::SmartContract_AddVariable(
         theType = OTVariable::Var_String;
     if ((OTVariable::Var_Error_Type == theType) ||
         (OTVariable::Var_Error_Access == theAccess)) {
-        otOut << "OT_API::SmartContract_AddVariable: Failed due to bad "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed due to bad "
                  "variable type or bad access type. \n";
         return false;
     }
@@ -4119,7 +4494,7 @@ bool OT_API::SmartContract_AddVariable(
     }
 
     if (!bAdded) {
-        otOut << "OT_API::SmartContract_AddVariable: Failed trying to "
+        otOut << "OT_API::" << __FUNCTION__ << ": Failed trying to "
                  "add variable (" << str_name
               << ") to bylaw: " << str_bylaw_name << " \n";
         return false;
@@ -4132,6 +4507,56 @@ bool OT_API::SmartContract_AddVariable(
     strOutput.Release();
     pContract->SaveContractRaw(strOutput);
     return true;
+}
+
+bool OT_API::SmartContract_RemoveVariable(
+    const String& THE_CONTRACT,      // The contract, about to have the variable
+                                     // added to it.
+    const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                     // signing at this point is only to cause
+                                     // a save.)
+    const String& BYLAW_NAME, // Should already be on the contract. (This way
+                              // we can find it.)
+    const String& VAR_NAME,   // The Variable's name as referenced in the smart
+                              // contract. (And the scripts...)
+    String& strOutput) const
+{
+    Nym* pNym = GetOrLoadPrivateNym(
+        SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+    if (nullptr == pNym) return false;
+    // By this point, pNym is a good pointer, and is on the wallet. (No need to
+    // cleanup.)
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    if (nullptr == pContract) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Error loading "
+                 "smart contract:\n\n" << THE_CONTRACT << "\n\n";
+        return false;
+    }
+    const std::string str_bylaw_name(BYLAW_NAME.Get());
+
+    OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
+
+    if (nullptr == pBylaw) {
+        otOut << "OT_API::" << __FUNCTION__ << ": Failure: Bylaw "
+                 "doesn't exist: " << str_bylaw_name << " \n";
+        return false;
+    }
+    const std::string str_name(VAR_NAME.Get());
+
+    if (pBylaw->RemoveVariable(str_name))
+    {
+        // Success!
+        //
+        pContract->ReleaseSignatures();
+        pContract->SignContract(*pNym);
+        pContract->SaveContract();
+        strOutput.Release();
+        pContract->SaveContractRaw(strOutput);
+        return true;
+    }
+    
+    return false;
 }
 
 // The Nym's Name is basically just a client-side label.

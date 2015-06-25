@@ -479,6 +479,8 @@ public:
         const std::string& str_Contract);
     EXPORT static std::string CalculateServerContractID(
         const std::string& str_Contract);
+    EXPORT static std::string CalculateContractID(
+        const std::string& str_Contract);
     
     EXPORT static std::string GetSignerNymID(
         const std::string& str_Contract);
@@ -1279,6 +1281,17 @@ public:
                                  // anytime
         );
 
+    EXPORT static std::string SmartContract_SetDates(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // dates changed on it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
+        const time64_t& VALID_TO          // Default (0 or nullptr) == no expiry / cancel anytime.
+    
+        );
+    
     //
     // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
     // custom languages in their scripts. For now I have a default language, so
@@ -1289,6 +1302,17 @@ public:
     EXPORT static std::string SmartContract_AddBylaw(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // bylaw added to it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& BYLAW_NAME // The Bylaw's NAME as referenced in the
+                                      // smart contract. (And the scripts...)
+        );
+
+    // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_RemoveBylaw(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // bylaw removed from it.
         const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                           // signing at this point is only to
                                           // cause a save.)
@@ -1312,9 +1336,38 @@ public:
         );
 
     // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_UpdateClause(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // clause updated on it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& BYLAW_NAME,    // Should already be on the contract.
+                                          // (This way we can find it.)
+        const std::string& CLAUSE_NAME,   // The Clause's name as referenced in
+                                          // the smart contract. (And the
+                                          // scripts...)
+        const std::string& SOURCE_CODE // The actual source code for the clause.
+        );
+
+    // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_RemoveClause(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // clause removed from it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& BYLAW_NAME,    // Should already be on the contract.
+                                          // (This way we can find it.)
+        const std::string& CLAUSE_NAME    // The Clause's name as referenced in
+                                          // the smart contract. (And the
+                                          // scripts...)
+        );
+
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddVariable(
         const std::string& THE_CONTRACT,  // The contract, about to have the
-                                          // variabnle added to it.
+                                          // variable added to it.
         const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                           // signing at this point is only to
                                           // cause a save.)
@@ -1330,6 +1383,19 @@ public:
         // a int64_t. If type is bool, the strings
         // "true" or "false" are expected here in
         // order to convert to a bool.
+        );
+
+    // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_RemoveVariable(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // variable added to it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& BYLAW_NAME,    // Should already be on the contract.
+                                          // (This way we can find it.)
+        const std::string& VAR_NAME  // The Variable's name as referenced in the
+                                     // smart contract. (And the scripts...)
         );
 
     // returns: the updated smart contract (or nullptr)
@@ -1350,9 +1416,40 @@ public:
         );
 
     // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_RemoveCallback(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // callback removed from it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& BYLAW_NAME,    // Should already be on the contract.
+                                          // (This way we can find it.)
+        const std::string& CALLBACK_NAME  // The Callback's name as referenced
+                                          // in the smart contract. (And the
+                                          // scripts...)
+        );
+
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddHook(
         const std::string& THE_CONTRACT, // The contract, about to have the hook
                                          // added to it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& BYLAW_NAME,    // Should already be on the contract.
+                                          // (This way we can find it.)
+        const std::string& HOOK_NAME,  // The Hook's name as referenced in the
+                                       // smart contract. (And the scripts...)
+        const std::string& CLAUSE_NAME // The actual clause that will be
+                                       // triggered by the hook. (You can call
+                                       // this multiple times, and have multiple
+                                       // clauses trigger on the same hook.)
+        );
+
+    // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_RemoveHook(
+        const std::string& THE_CONTRACT, // The contract, about to have the hook
+                                         // removed from it.
         const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                           // signing at this point is only to
                                           // cause a save.)
@@ -1379,6 +1476,17 @@ public:
                                        // this party. Need Agent NAME.
         );
 
+    // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
+    EXPORT static std::string SmartContract_RemoveParty(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // party removed from it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& PARTY_NAME  // The Party's NAME as referenced in the
+                                       // smart contract. (And the scripts...)
+        );
+
     // (FYI, that is basically the only option, until I code Entities and Roles.
     // Until then, a party can ONLY be
     // a Nym, with himself as the agent representing that same party. Nym ID is
@@ -1401,6 +1509,19 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID // Instrument Definition ID
                                                     // for the
                                                     // Account.
+        );
+
+    // returns: the updated smart contract (or nullptr)
+    EXPORT static std::string SmartContract_RemoveAccount(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // account added to it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const std::string& PARTY_NAME, // The Party's NAME as referenced in the
+                                       // smart contract. (And the scripts...)
+        const std::string& ACCT_NAME  // The Account's name as referenced in the
+                                      // smart contract
         );
 
     /** This function returns the count of how many trans#s a Nym needs in order

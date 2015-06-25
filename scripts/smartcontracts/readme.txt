@@ -4,11 +4,13 @@
 CONSTRUCT SMART CONTRACT
 
 To create your own custom smart contracts from scratch, use the new
-utility script:  smartcontract.ot
+smart contracts GUI screen in the Moneychanger desktop application.
+The script found in this folder, smartcontract.ot, is now old and is
+not recommended.
 
-It will give you a menu-based interface to create any smart contract you
-want. You can also use it to view existing smart contracts, such as the
-escrow.otc template (found in the escrow folder.)
+Moneychanger will give you a GUI interface to create any smart contract
+you want. You can also use it to view existing smart contracts, such as
+the escrow.otc template (found in the escrow folder.)
 
 ----------------------------------------------------------------------------
 

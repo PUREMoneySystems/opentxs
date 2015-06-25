@@ -301,6 +301,8 @@ public:
     EXPORT bool AddAccount(const String& strAgentName, const char* szAcctName,
                            Account& theAccount, int64_t lClosingTransNo);
 
+    EXPORT bool RemoveAccount(const std::string str_Name);
+    
     int32_t GetAccountCount() const
     {
         return static_cast<int32_t>(m_mapPartyAccounts.size());

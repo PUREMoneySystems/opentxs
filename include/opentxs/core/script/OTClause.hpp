@@ -41,6 +41,8 @@
 
 #include <opentxs/core/String.hpp>
 
+#include <string>
+
 namespace opentxs
 {
 
@@ -71,6 +73,8 @@ public:
 
     EXPORT const char* GetCode() const;
 
+    EXPORT void SetCode(const std::string& str_code);
+    
     bool Compare(const OTClause& rhs) const;
 
     OTClause();

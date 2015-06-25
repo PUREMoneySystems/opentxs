@@ -381,6 +381,12 @@ std::string OTAPI_Wrap::CalculateServerContractID(
     return Exec()->CalculateServerContractID(str_Contract);
 }
 
+std::string OTAPI_Wrap::CalculateContractID(
+    const std::string& str_Contract)
+{
+    return Exec()->CalculateContractID(str_Contract);
+}
+
 std::string OTAPI_Wrap::CreateServerContract(const std::string& NYM_ID,
                                              const std::string& strXMLcontents)
 {
@@ -1099,6 +1105,14 @@ std::string OTAPI_Wrap::Create_SmartContract(const std::string& SIGNER_NYM_ID,
     return Exec()->Create_SmartContract(SIGNER_NYM_ID, VALID_FROM, VALID_TO);
 }
 
+std::string OTAPI_Wrap::SmartContract_SetDates(const std::string& THE_CONTRACT,
+                                               const std::string& SIGNER_NYM_ID,
+                                               const time64_t& VALID_FROM,
+                                               const time64_t& VALID_TO)
+{
+    return Exec()->SmartContract_SetDates(THE_CONTRACT, SIGNER_NYM_ID, VALID_FROM, VALID_TO);
+}
+
 std::string OTAPI_Wrap::SmartContract_AddBylaw(const std::string& THE_CONTRACT,
                                                const std::string& SIGNER_NYM_ID,
                                                const std::string& BYLAW_NAME)
@@ -1164,7 +1178,74 @@ std::string OTAPI_Wrap::SmartContract_AddAccount(
                                             PARTY_NAME, ACCT_NAME,
                                             INSTRUMENT_DEFINITION_ID);
 }
+    
+std::string OTAPI_Wrap::SmartContract_RemoveBylaw(const std::string& THE_CONTRACT,
+                                                  const std::string& SIGNER_NYM_ID,
+                                                  const std::string& BYLAW_NAME)
+{
+    return Exec()->SmartContract_RemoveBylaw(THE_CONTRACT, SIGNER_NYM_ID,
+                                             BYLAW_NAME);
+}
 
+std::string OTAPI_Wrap::SmartContract_UpdateClause(
+    const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
+    const std::string& BYLAW_NAME, const std::string& CLAUSE_NAME,
+    const std::string& SOURCE_CODE)
+{
+    return Exec()->SmartContract_UpdateClause(
+        THE_CONTRACT, SIGNER_NYM_ID, BYLAW_NAME, CLAUSE_NAME, SOURCE_CODE);
+}
+
+std::string OTAPI_Wrap::SmartContract_RemoveClause(
+    const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
+    const std::string& BYLAW_NAME, const std::string& CLAUSE_NAME)
+{
+    return Exec()->SmartContract_RemoveClause(
+        THE_CONTRACT, SIGNER_NYM_ID, BYLAW_NAME, CLAUSE_NAME);
+}
+
+std::string OTAPI_Wrap::SmartContract_RemoveVariable(
+    const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
+    const std::string& BYLAW_NAME, const std::string& VAR_NAME)
+{
+    return Exec()->SmartContract_RemoveVariable(THE_CONTRACT, SIGNER_NYM_ID,
+                                             BYLAW_NAME, VAR_NAME);
+}
+
+std::string OTAPI_Wrap::SmartContract_RemoveCallback(
+    const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
+    const std::string& BYLAW_NAME, const std::string& CALLBACK_NAME)
+{
+    return Exec()->SmartContract_RemoveCallback(
+        THE_CONTRACT, SIGNER_NYM_ID, BYLAW_NAME, CALLBACK_NAME);
+}
+
+std::string OTAPI_Wrap::SmartContract_RemoveHook(const std::string& THE_CONTRACT,
+                                                 const std::string& SIGNER_NYM_ID,
+                                                 const std::string& BYLAW_NAME,
+                                                 const std::string& HOOK_NAME,
+                                                 const std::string& CLAUSE_NAME)
+{
+    return Exec()->SmartContract_RemoveHook(THE_CONTRACT, SIGNER_NYM_ID,
+                                            BYLAW_NAME, HOOK_NAME, CLAUSE_NAME);
+}
+
+std::string OTAPI_Wrap::SmartContract_RemoveParty(const std::string& THE_CONTRACT,
+                                                  const std::string& SIGNER_NYM_ID,
+                                                  const std::string& PARTY_NAME)
+{
+    return Exec()->SmartContract_RemoveParty(THE_CONTRACT, SIGNER_NYM_ID,
+                                             PARTY_NAME);
+}
+
+std::string OTAPI_Wrap::SmartContract_RemoveAccount(
+    const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
+    const std::string& PARTY_NAME, const std::string& ACCT_NAME)
+{
+    return Exec()->SmartContract_RemoveAccount(THE_CONTRACT, SIGNER_NYM_ID,
+                                               PARTY_NAME, ACCT_NAME);
+}
+    
 int32_t OTAPI_Wrap::SmartContract_CountNumsNeeded(
     const std::string& THE_CONTRACT, const std::string& AGENT_NAME)
 {

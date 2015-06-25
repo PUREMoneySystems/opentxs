@@ -107,7 +107,7 @@ OTAgent* OTPartyAccount::GetAuthorizedAgent()
     OT_ASSERT(nullptr != m_pForParty);
 
     if (!m_strAgentName.Exists()) {
-        otErr << "OTPartyAccount::GetAuthorizedAgent: Error: Authorized agent "
+        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: Authorized agent "
                  "name (for this account) is blank!\n";
         return nullptr;
     }
@@ -147,7 +147,7 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
     const Identifier theMemberAcctID(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
         String strRHS(theAcctID);
-        otLog4 << "OTPartyAccount::IsAccountByID: Account IDs don't match: "
+        otLog4 << "OTPartyAccount::" << __FUNCTION__ << ": Account IDs don't match: "
                << m_strAcctID << " / " << strRHS << " \n";
         // I set output to 4 because it's normal to call IsAccountByID() even
         // when they don't match.
@@ -162,12 +162,12 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 bool OTPartyAccount::IsAccount(Account& theAccount)
 {
     if (!m_strAcctID.Exists()) {
-        otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAcctID.\n";
+        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: Empty m_strAcctID.\n";
         return false;
     }
 
     if (!m_strInstrumentDefinitionID.Exists()) {
-        otErr << "OTPartyAccount::IsAccount: Error: Empty "
+        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: Empty "
                  "m_strInstrumentDefinitionID.\n";
         return false;
     }
@@ -175,7 +175,7 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
     const Identifier theAcctID(m_strAcctID);
     if (!(theAccount.GetRealAccountID() == theAcctID)) {
         String strRHS(theAccount.GetRealAccountID());
-        otLog4 << "OTPartyAccount::IsAccount: Account IDs don't match: "
+        otLog4 << "OTPartyAccount::" << __FUNCTION__ << ": Account IDs don't match: "
                << m_strAcctID << " / " << strRHS
                << " \n"; // I set output to 4 because it's normal to call
                          // IsAccount() even when they don't match.
@@ -186,7 +186,7 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
     if (!(theAccount.GetInstrumentDefinitionID() ==
           theInstrumentDefinitionID)) {
         String strRHS(theAccount.GetInstrumentDefinitionID());
-        otOut << "OTPartyAccount::IsAccount: Instrument Definition IDs don't "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Instrument Definition IDs don't "
                  "match ( " << m_strInstrumentDefinitionID << " / " << strRHS
               << " ) for Acct ID: " << m_strAcctID << " \n";
         return false;
@@ -201,19 +201,19 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
 bool OTPartyAccount::VerifyOwnership() const
 {
     if (nullptr == m_pForParty) {
-        otErr << "OTPartyAccount::VerifyOwnership: Error: nullptr pointer to "
+        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: nullptr pointer to "
                  "owner party. \n";
         return false;
     }
     if (nullptr == m_pAccount) {
-        otErr << "OTPartyAccount::VerifyOwnership: Error: nullptr pointer to "
+        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: nullptr pointer to "
                  "account. (This function expects account to already be "
                  "loaded.) \n";
         return false;
     } // todo maybe turn the above into OT_ASSERT()s.
 
     if (!m_pForParty->VerifyOwnershipOfAccount(*m_pAccount)) {
-        otOut << "OTPartyAccount::VerifyOwnership: Party %s doesn't verify as "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Party %s doesn't verify as "
                  "the ACTUAL owner of account: " << m_strName << " \n";
         return false;
     }
@@ -226,7 +226,7 @@ bool OTPartyAccount::VerifyOwnership() const
 bool OTPartyAccount::VerifyAgency()
 {
     if (nullptr == m_pAccount) {
-        otErr << "OTPartyAccount::VerifyAgency: Error: nullptr pointer to "
+        otErr << "OTPartyAccount::" << __FUNCTION__ << ": Error: nullptr pointer to "
                  "account. (This function expects account to already be "
                  "loaded.) \n";
         return false;
@@ -236,13 +236,13 @@ bool OTPartyAccount::VerifyAgency()
 
     if (nullptr == pAgent) {
         otOut
-            << "OTPartyAccount::VerifyAgency: Unable to find authorized agent ("
+            << "OTPartyAccount::" << __FUNCTION__ << ": Unable to find authorized agent ("
             << GetAgentName() << ") for this account: " << GetName() << " \n";
         return false;
     }
 
     if (!pAgent->VerifyAgencyOfAccount(*m_pAccount)) {
-        otOut << "OTPartyAccount::VerifyAgency: Agent " << GetAgentName()
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Agent " << GetAgentName()
               << " doesn't verify as ACTUALLY having rights over account "
               << GetName() << " with ID: " << GetAcctID() << " \n";
         return false;
@@ -303,7 +303,7 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
                                      const String& strNotaryID)
 {
     if (!m_strAcctID.Exists()) {
-        otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Bad: Acct ID is blank for "
                  "account: " << m_strName << " \n";
         return nullptr;
     }
@@ -313,7 +313,7 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
     Account* pAccount = Account::LoadExistingAccount(theAcctID, theNotaryID);
 
     if (nullptr == pAccount) {
-        otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Failed trying to load account: "
               << m_strName << ", with AcctID: " << m_strAcctID << " \n";
         return nullptr;
     }
@@ -321,7 +321,7 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
     //
     else if (!pAccount->VerifyAccount(theSignerNym)) {
         otOut
-            << "OTPartyAccount::LoadAccount: Failed trying to verify account: "
+            << "OTPartyAccount::" << __FUNCTION__ << ": Failed trying to verify account: "
             << m_strName << ", with AcctID: " << m_strAcctID << " \n";
         delete pAccount;
         return nullptr;
@@ -350,7 +350,7 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
 void OTPartyAccount::Serialize(Tag& parent, bool bCalculatingID,
                                bool bSpecifyInstrumentDefinitionID) const
 {
-    TagPtr pTag(new Tag("account"));
+    TagPtr pTag(new Tag("assetAccount"));
 
     pTag->add_attribute("name", m_strName.Get());
     pTag->add_attribute("acctID", bCalculatingID ? "" : m_strAcctID.Get());

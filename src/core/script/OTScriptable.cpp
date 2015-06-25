@@ -165,16 +165,142 @@ bool OTScriptable::is_ot_namechar_invalid(char c)
 bool OTScriptable::ValidateName(std::string str_name)
 {
     if (str_name.size() <= 0) {
-        otErr << "OTScriptable::ValidateName: Name has zero size.\n";
+        otErr << "OTScriptable::" << __FUNCTION__ << ": Name has zero size.\n";
         return false;
     }
     else if (find_if(str_name.begin(), str_name.end(),
                        is_ot_namechar_invalid) != str_name.end()) {
-        otErr << "OTScriptable::ValidateName: Name fails validation testing: "
+        otErr << "OTScriptable::" << __FUNCTION__ << ": Name fails validation testing: "
               << str_name << "\n";
         return false;
     }
 
+    return true;
+}
+
+//static
+bool OTScriptable::ValidateBylawName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidatePartyName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidateAgentName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidateAccountName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidateVariableName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    // This prefix is disallowed since it's reserved for clause parameter names.
+    //
+    if (str_name.compare(0, 6, "param_") == 0) {
+        otErr << "OTScriptable::" << __FUNCTION__ << ": Invalid variable name ("
+        << str_name << "). ('param_' is reserved.)\n";
+        return false;
+    }
+    if (str_name.compare(0, 7, "return_") == 0) {
+        otErr << "OTScriptable::" << __FUNCTION__ << ": Invalid variable name ("
+        << str_name << "). ('return_' is reserved.)\n";
+        return false;
+    }
+
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidateClauseName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    // To avoid confusion, we disallow clauses beginning in cron_ or hook_ or
+    // callback_
+    //
+    if (0 == str_name.compare(0, 5, "cron_")) // todo stop hardcoding
+    {
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Invalid Clause name: '" << str_name << "'. name "
+        "should not start with 'cron_'\n";
+        return false;
+    }
+    
+    if (0 == str_name.compare(0, 5, "hook_")) // todo stop hardcoding
+    {
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Invalid Clause name: '" << str_name << "'. name "
+        "should not start with 'hook_'\n";
+        return false;
+    }
+    
+    if (0 == str_name.compare(0, 9, "callback_")) // todo stop hardcoding
+    {
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Invalid Clause name: '" << str_name << "'. name "
+        "should not start with 'callback_'\n";
+        return false;
+    }
+
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidateHookName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    if ((str_name.compare(0, 5, "cron_") != 0) &&
+        (str_name.compare(0, 5, "hook_") != 0))
+    {
+        otOut << "OTScriptable::" <<__FUNCTION__ << ": Invalid hook name: '"
+        << str_name << "'. MUST begin with either 'hook_' or 'cron_'.\n";
+        return false;
+    }
+
+    return true;
+}
+    
+//static
+bool OTScriptable::ValidateCallbackName(std::string str_name)
+{
+    if (!ValidateName(str_name))
+        return false;
+    
+    // If the callback name DOESN'T begin with 'callback_' then it is
+    // rejected.
+    if (0 != str_name.compare(0, 9, "callback_"))
+    {
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Invalid Callback name: '" << str_name <<
+        "'. MUST begin with 'callback_'.\n";
+        return false;
+    }
+    
     return true;
 }
 
@@ -1946,7 +2072,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
 
     if (!OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
     {
-        otErr << "OTScriptable::ConfirmParty:  Error: invalid name.\n";
+        otErr << "OTScriptable::" << __FUNCTION__ << ":  Error: invalid name.\n";
         return false;
     }
 
@@ -1984,7 +2110,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
         if (!pParty->Compare(theParty)) // Make sure my party compares to the
                                         // one it's replacing...
         {
-            otOut << "OTScriptable::ConfirmParty: Party (" << str_party_name
+            otOut << "OTScriptable::" << __FUNCTION__ << ": Party (" << str_party_name
                   << ") doesn't match the one it's confirming.\n";
             return false;
         }
@@ -2033,7 +2159,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
         return false;
     }
     else
-        otOut << "OTScriptable::ConfirmParty: Failed attempt to confirm "
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Failed attempt to confirm "
                  "non-existent party: " << str_party_name << " \n ";
 
     return false;
@@ -2046,9 +2172,9 @@ bool OTScriptable::AddParty(OTParty& theParty)
 {
     const std::string str_party_name = theParty.GetPartyName();
 
-    if (!OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
+    if (!OTScriptable::ValidatePartyName(str_party_name)) // this logs, FYI.
     {
-        otErr << "OTScriptable::AddParty:  Error: invalid name.\n";
+        otErr << "OTScriptable::" << __FUNCTION__ << ":  Error: invalid name.\n";
         return false;
     }
 
@@ -2063,19 +2189,71 @@ bool OTScriptable::AddParty(OTParty& theParty)
         return true;
     }
     else
-        otOut << "OTScriptable::AddParty: Failed attempt: party already exists "
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Failed attempt: party already exists "
                  "on contract.\n ";
 
     return false;
 }
 
+bool OTScriptable::RemoveParty(std::string str_Name)
+{
+    if (!OTScriptable::ValidatePartyName(str_Name)) // this logs, FYI.
+    {
+        otErr << "OTScriptable::" << __FUNCTION__ << ":  Error: invalid name.\n";
+        return false;
+    }
+    
+    auto it = m_mapParties.find(str_Name);
+    
+    if (m_mapParties.end() != it) // Found it.
+    {
+        OTParty * pParty = it->second;
+        OT_ASSERT(nullptr != pParty);
+        
+        m_mapParties.erase(it);
+        delete pParty; pParty = nullptr;
+        return true;
+    }
+    else
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Failed attempt: party didn't exist "
+        "on contract.\n ";
+    
+    return false;
+}
+    
+bool OTScriptable::RemoveBylaw(std::string str_Name)
+{
+    if (!OTScriptable::ValidateBylawName(str_Name)) // this logs, FYI.
+    {
+        otErr << "OTScriptable::" << __FUNCTION__ << ":  Error: invalid name.\n";
+        return false;
+    }
+    
+    auto it = m_mapBylaws.find(str_Name);
+    
+    if (m_mapBylaws.end() != it) // Found it.
+    {
+        OTBylaw * pBylaw = it->second;
+        OT_ASSERT(nullptr != pBylaw);
+        
+        m_mapBylaws.erase(it);
+        delete pBylaw; pBylaw = nullptr;
+        return true;
+    }
+    else
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Failed attempt: bylaw didn't exist "
+        "on contract.\n ";
+    
+    return false;
+}
+    
 bool OTScriptable::AddBylaw(OTBylaw& theBylaw)
 {
     const std::string str_name = theBylaw.GetName().Get();
 
-    if (!OTScriptable::ValidateName(str_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateBylawName(str_name)) // this logs, FYI.
     {
-        otErr << "OTScriptable::AddBylaw:  Error: invalid name.\n";
+        otErr << "OTScriptable::" << __FUNCTION__ << ":  Error: invalid name.\n";
         return false;
     }
 
@@ -2090,7 +2268,7 @@ bool OTScriptable::AddBylaw(OTBylaw& theBylaw)
         return true;
     }
     else
-        otOut << "OTScriptable::AddBylaw: Failed attempt: bylaw already exists "
+        otOut << "OTScriptable::" << __FUNCTION__ << ": Failed attempt: bylaw already exists "
                  "on contract.\n ";
 
     return false;
@@ -2530,7 +2708,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
-                                (!strcmp("account", xml->getNodeName()))) {
+                                (!strcmp("assetAccount", xml->getNodeName()))) {
                                 String strAcctName = xml->getAttributeValue(
                                     "name"); // Acct name (if needed in script
                                              // code)
@@ -2628,7 +2806,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             }
                             else {
-                                otErr << szFunc << ": Expected account "
+                                otErr << szFunc << ": Expected assetAccount "
                                                    "element in party.\n";
                                 delete pParty;
                                 pParty = nullptr;
@@ -3260,9 +3438,7 @@ OTClause* OTScriptable::GetCallback(std::string str_CallbackName)
 //
 bool OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
 {
-    if ((false == OTScriptable::ValidateName(str_HookName)) ||
-        ((str_HookName.compare(0, 5, "cron_") != 0) &&
-         (str_HookName.compare(0, 5, "hook_") != 0))) // this logs, FYI.
+    if (false == OTScriptable::ValidateHookName(str_HookName)) // this logs, FYI.
     {
         otErr << "OTScriptable::GetHooks:  Error: invalid name.\n";
         return false;

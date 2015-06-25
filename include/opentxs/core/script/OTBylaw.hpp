@@ -119,6 +119,14 @@ public:
     // custom_party_may_execute_clause
     // (corresponding to an actual script
     // in the clauses map.)
+    
+    EXPORT bool RemoveVariable(std::string str_Name);
+    EXPORT bool RemoveClause(std::string str_Name);
+    EXPORT bool RemoveHook(std::string str_Name, std::string str_ClauseName);
+    EXPORT bool RemoveCallback(std::string str_Name);
+
+    EXPORT bool UpdateClause(std::string str_Name, std::string str_Code);
+
     EXPORT OTVariable* GetVariable(std::string str_Name); // not a
                                                           // reference, so
                                                           // you can pass

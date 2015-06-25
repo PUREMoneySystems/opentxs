@@ -48,6 +48,8 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <map>
+
 // Checks opening number on party, and closing numbers on his accounts.
 //
 
@@ -279,6 +281,29 @@ bool OTParty::AddAccount(const String& strAgentName, const char* szAcctName,
     return true;
 }
 
+    
+bool OTParty::RemoveAccount(const std::string str_Name)
+{
+    for (mapOfPartyAccounts::iterator it = m_mapPartyAccounts.begin();
+         it != m_mapPartyAccounts.end();
+         ++it)
+    {
+        OTPartyAccount* pAcct = it->second;
+        OT_ASSERT(nullptr != pAcct);
+        
+        const std::string str_acct_name = pAcct->GetName().Get();
+
+        if (0 == str_acct_name.compare(str_Name))
+        {
+            m_mapPartyAccounts.erase(it);
+            delete pAcct; pAcct = nullptr;
+            return true;
+        }
+    }
+
+    return false;
+}
+    
 bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
 {
     const std::string str_acct_name = thePartyAcct.GetName().Get();

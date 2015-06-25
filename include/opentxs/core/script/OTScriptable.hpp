@@ -172,6 +172,8 @@ public:
     EXPORT virtual bool AddParty(OTParty& theParty);     // Takes ownership.
     EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
     EXPORT virtual bool ConfirmParty(OTParty& theParty); // Takes ownership.
+    EXPORT bool RemoveParty(std::string str_Name);
+    EXPORT bool RemoveBylaw(std::string str_Name);
     EXPORT OTParty* GetParty(std::string str_party_name) const;
     EXPORT OTBylaw* GetBylaw(std::string str_bylaw_name) const;
     EXPORT OTClause* GetClause(std::string str_clause_name) const;
@@ -344,6 +346,15 @@ public:
     // names, party names, etc.
     //
     static bool ValidateName(std::string str_name);
+    static bool ValidateBylawName(std::string str_name);
+    static bool ValidatePartyName(std::string str_name);
+    static bool ValidateAgentName(std::string str_name);
+    static bool ValidateAccountName(std::string str_name);
+    static bool ValidateVariableName(std::string str_name);
+    static bool ValidateClauseName(std::string str_name);
+    static bool ValidateHookName(std::string str_name);
+    static bool ValidateCallbackName(std::string str_name);
+    
     // For use from inside server-side scripts.
     //
     static std::string GetTime(); // Returns a string, containing seconds as

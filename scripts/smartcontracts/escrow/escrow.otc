@@ -1,343 +1,318 @@
-
 -----BEGIN SIGNED SMARTCONTRACT-----
-Hash: SAMY
+Hash: HASH256
 
 <smartContract
- version="2.0"
- serverID=""
- activatorUserID=""
  activatorAcctID=""
- lastSenderUserID=""
- lastSenderAcctID=""
- lastRecipientUserID=""
- lastRecipientAcctID=""
+ activatorNymID=""
  canceled="false"
- cancelerUserID=""
+ cancelerNymID=""
+ creationDate="2015-06-24T05:54:24"
+ lastRecipientAcctID=""
+ lastRecipientNymID=""
+ lastSenderAcctID=""
+ lastSenderNymID=""
+ nextProcessDate="1970-01-01T00:00:00"
+ notaryID=""
  transactionNum="0"
- creationDate="1373430776"
- validFrom="1373430776"
- validTo="0"
- nextProcessDate="0" >
-
+ validFrom="2015-06-24T05:54:24"
+ validTo="2015-06-24T05:54:24"
+ version="2.0">
 <scriptableContract
- specifyAssetID="false"
- specifyParties="false"
+ numBylaws="1"
  numParties="3"
- numBylaws="1" >
-
+ specifyInstrumentDefinitionID="false"
+ specifyParties="false">
 <party
- name="party_alice"
- ownerType="nym"
- ownerID=""
- openingTransNo="0"
- signedCopyProvided="false"
  authorizingAgent="agent_alice"
+ name="party_alice"
+ numAccounts="1"
  numAgents="1"
- numAccounts="1" >
-
+ openingTransNo="0"
+ ownerID=""
+ ownerType="nym"
+ signedCopyProvided="false">
 <agent
+ doesAgentRepresentHimself="true"
+ groupName=""
+ isAgentAnIndividual="true"
  name="agent_alice"
- doesAgentRepresentHimself="true"
- isAgentAnIndividual="true"
  nymID=""
- roleID=""
- groupName="" />
-
+ roleID="" />
 <assetAccount
- name="alice_acct"
  acctID=""
- assetTypeID="JY7kEFnm2c50CGNphdpgnlVo2hOZuLrBua5cFqWWR9Q"
  agentName=""
- closingTransNo="0" />
+ closingTransNo="0"
+ instrumentDefinitionID=""
+ name="acct_alice" />
 
 </party>
-
 <party
- name="party_bob"
- ownerType="nym"
- ownerID=""
- openingTransNo="0"
- signedCopyProvided="false"
  authorizingAgent="agent_bob"
+ name="party_bob"
+ numAccounts="1"
  numAgents="1"
- numAccounts="1" >
-
-<agent
- name="agent_bob"
- doesAgentRepresentHimself="true"
- isAgentAnIndividual="true"
- nymID=""
- roleID=""
- groupName="" />
-
-<assetAccount
- name="bob_acct"
- acctID=""
- assetTypeID="JY7kEFnm2c50CGNphdpgnlVo2hOZuLrBua5cFqWWR9Q"
- agentName=""
- closingTransNo="0" />
-
-</party>
-
-<party
- name="party_judy"
- ownerType="nym"
- ownerID=""
  openingTransNo="0"
- signedCopyProvided="false"
- authorizingAgent="agent_judy"
- numAgents="1"
- numAccounts="1" >
-
+ ownerID=""
+ ownerType="nym"
+ signedCopyProvided="false">
 <agent
- name="agent_judy"
  doesAgentRepresentHimself="true"
+ groupName=""
  isAgentAnIndividual="true"
+ name="agent_bob"
  nymID=""
- roleID=""
- groupName="" />
-
+ roleID="" />
 <assetAccount
- name="judy_acct"
  acctID=""
- assetTypeID="JY7kEFnm2c50CGNphdpgnlVo2hOZuLrBua5cFqWWR9Q"
  agentName=""
- closingTransNo="0" />
+ closingTransNo="0"
+ instrumentDefinitionID=""
+ name="acct_bob" />
 
 </party>
+<party
+ authorizingAgent="agent_judy"
+ name="party_judy"
+ numAccounts="1"
+ numAgents="1"
+ openingTransNo="0"
+ ownerID=""
+ ownerType="nym"
+ signedCopyProvided="false">
+<agent
+ doesAgentRepresentHimself="true"
+ groupName=""
+ isAgentAnIndividual="true"
+ name="agent_judy"
+ nymID=""
+ roleID="" />
+<assetAccount
+ acctID=""
+ agentName=""
+ closingTransNo="0"
+ instrumentDefinitionID=""
+ name="acct_judy" />
 
+</party>
 <bylaw
+ language="chai"
  name="main_bylaws"
- numVariables="12"
+ numCallbacks="2"
  numClauses="7"
  numHooks="2"
- numCallbacks="2"
- language="chai" >
-
+ numVariables="12">
 <variable
+ access="important"
  name="bool_alice_dispute"
- value="false"
  type="bool"
- access="important" />
-
+ value="false" />
 <variable
+ access="important"
  name="bool_bob_reply"
- value="false"
  type="bool"
- access="important" />
-
+ value="false" />
 <variable
+ access="important"
  name="bool_judy_judgment"
- value="false"
  type="bool"
- access="important" />
-
+ value="false" />
 <variable
+ access="important"
  name="nState"
- value="0"
  type="integer"
- access="important" />
-
+ value="0" />
 <variable
+ access="constant"
  name="str_alice_amount"
- value="exists"
  type="string"
- access="constant" >
-eJzjYjY0NQUAAXUAqQ==
-</variable>
+ value="exists">
+eNozNDUFAAE1AJw=
 
+</variable>
 <variable
+ access="important"
  name="str_alice_dispute"
- value="exists"
  type="string"
- access="important" >
-eJzj0vRMU3DMyUxOVUjJLC4oLUkt1lHISC2C8RTS81OLQQKpegA4rg7b
-</variable>
+ value="exists">
+eNrzTFNwzMlMTlVIySwuKC1JLdZRyEgtgvEUclOLixPTUxXS81OLQRKpegC1dRGt
 
+</variable>
 <variable
+ access="important"
  name="str_bob_reply"
- value="exists"
  type="string"
- access="important" >
-eJzj0nTKT1IvVihKLcipVCjJV3DMyUxOBQqkZBYXlJakKqTnpxYrZKQWpeoBADSN
-DqY=
-</variable>
+ value="exists">
+eNpzyk9SL1YoSi3IqVQoyVdwzMlMTgUKpGQWF5SWpCqk56cWK2SkFqXqAQAsIw5z
 
+</variable>
 <variable
+ access="constant"
  name="str_consideration"
- value="exists"
  type="string"
- access="constant" >
-eJzjUtdwzs8rzkxJLUosyczPU8gtLS5RSEpVSEktTi7KTEpNUchILUrV0wQAKjEO
-XA==
-</variable>
+ value="exists">
+eNrTcM7PK85MSS1KLMnMz1PILS0uUUhKVUhJLU4uykxKTVHISC1K1dMEACJ9Dis=
 
+</variable>
 <variable
+ access="important"
  name="str_error_status"
- value="exists"
  type="string"
- access="important" >
-eJzjktRwLSrKL1LITS0uTkxPLVZIz1fISC1K1dMEAHgeCN8=
-</variable>
+ value="exists">
+eNrTcC0qyi9SyE0tLk5MTy1WSM9XyEgtStXTBAB0hAi8
 
+</variable>
 <variable
+ access="constant"
  name="str_judy_cut"
- value="exists"
  type="string"
- access="constant" >
-eJzjYjQFAABYAEE=
-</variable>
+ value="exists">
+eNozBQAANgA2
 
+</variable>
 <variable
+ access="important"
  name="str_judy_judgment"
- value="exists"
  type="string"
- access="important" >
-eJzjUvAqTalUL1ZIy8xLzFHIKk1Jz03NK1FIz08tVshILUrVAwDF1AvJ
-</variable>
+ value="exists">
+eNrzKk2pVC9WSMvMS8xRyCpNSc9NzStRSM9PLVbISC1K1QMAwF4Lnw==
 
+</variable>
 <variable
+ access="constant"
  name="str_judy_render_cut"
- value="exists"
  type="string"
- access="constant" >
-eJzjYjIyAAAAxgBv
+ value="exists">
+eNozMgAAAJYAYw==
+
 </variable>
-
-<clause
- name="activate_clause">
-eJyVUk1v1EAMvSElv8LkwkSUdFXUA0UcwlIkJKQidjlH3hlvd2AyU42dohVC4qfj
-fBRYqReiXGw/+73xc/nryV32UUy1WX/+8Gl7/Q7WH9svm+sraHdeMgo5ILY5fb+C
-7cEz6C8HAhtwYIJ9ylN4E1sr/l7hpoZDSt8aMDcRELjHLDZFHWWlqau6LIrzcx1F
-gH0aokAbvKVxLFN0Pt6CJHibdsUMbGcQkwCydzMjuq+D8xbFpwh7Ila2mOKLTPsh
-OtwFamr4z/5/e8t7zBC3STBsBPlArngDhiV3OIrtZuWNpG5cXQ3PYazpzGNnh8fz
-WR9H+aRcv554FPKXSXm0rCldhDlRoGiY8LslMe1N8TpA425Uz2bRZ62cQTUHU7k6
-O+WpdZjfg3l6Mk2X9qMsRs2Uc8pjqwxsqvfog96B5OPiDy5mL6cBfwwGs05DcPGZ
-wK2ufBI1uQ76OXro6x4aTF3+LCnoJalXm8FaYp4fNDLN7ZMmko5Juxx3unofOvE9
-ZVNdXL66WK1WVT2a/XIFDo8MEwLu8NiTeo+DpF69thjCUbPMxMuRNcr+G9LsBnY=
-</clause>
-
 <clause
  name="alice_dispute_clause">
-eJxtkUFr20AQhS+9SL/i4UtlSBwHSlsSfHDTHAqhLbF7FmtpbC1Iu2JmhDAhPzH/
-qbNS0ku67F5mZt/39m3+8qFnH7RY7O4ef/ze33/H3cP2z+7+Bls+eGWnVIOk4jje
-YN94ge1t6yv6KKi99IMSqtYNQisUvwIcpHOsVQx2udLVcrHMkcMfUayx2SDs1DSX
-WXZ1hbkQuXMtJJVRjI2vGoyEbhDFgeDDhR1ErolxjDzDofGNvjL9pyzPZuHM1gbX
-t9kEmGcb989qbSZ/xjEBHNMr9BqXlxidVx9OE+JbPICpb8+mnR1ibEuXhMpXEQMo
-D/SOEY9HX3nXtmfr+9OJ2LJrzPZbTrFXH4NZ2Dcch1MTB4WNzzbkApryZeqcDwKh
-3qX4TY2pSu+vkx1RfucmDXaldewBt8nTvqG5SGr43omYE0vxP38nGvm8yk2YtBQD
-hVrKIahvS/UdcbH4vP70db1eLJPwF9TuLJj6U0zTN81Z5XjO/wKeMcL0
-</clause>
+eNptkUFr20AQhc/Wr3j4EhkSx4GQlgQfnDSHQmlC7J7FWhpbC9KumBkhTOl/z6wU
+95AWdi8zs+99+6ZjHzSfb5/evr/unr/h6cfm1/b5Hhvee2WnVIGk5DjcY1d7gZ1N
+40u6EFReul4JZeN6oSXylwAHaR1rGYM9LnW5mC8yZPAH5Cus1whbNc0FgOtrTJXI
+rWsgqY58qH1ZYyC0vSj2BB8u7SJyRYxD5MkdGs/2SzP4PctmkzLWuHlI2tNY7f5i
+Vgb4Mw5J2zF9+N3g6gqD8+rDcVR/jHswdc3JZGf7GJvCJaHi/Nc1lHv65BAPB196
+1zQn6/rjkdhSq433/Cp26mMwgF3NsT/WsVfY+AQhl9CULFPrfBAIdS4Fb2pMZfp4
+lWBE+R+WNNgW1jH8h1mC2tU0VUnNv3MihmL5/WdtopFPy8yUSQsxp1BJ0Qf1TaG+
+Jc7nd6vbr6vVfDEu6wsqdxKMA2NM44amrDL8ybJ3nt7C/A==
 
+</clause>
 <clause
  name="bob_reply_clause">
-eJxtkU9r20AQxS+5aD/Fw5fYUBS3hKbE+OAmOTQ0JcTKWay0Y2sbaVfsH4wJ+aD5
-Np1dFUNLhNBhNPN7b96I9zOMTpswn21vnn48Vne3uPm5ed7eXWPjGh2cDKRAvnX2
-cI2q0x78frfNuUfby+gJO+vgqLVOabNH6nA09kcEi02vW+JOpf0YA5WzhYCA3mH+
-Ges1zDYwflEUFxfIhdyPTp4m1AoHqUMCJ5lJN+NLPDxvKzQEbRCSqk+wUuC1EMVE
-LvhZ48uqyAo8nNFpXJMq8cseTnRrcB/VntI3W3dkFDlI/ObyQCaUomis7evGNnV2
-kNjBRfoPb3c73WrZcwJ/lT5KAvOqczbuOxsDuHly7z9NqzgapDa8Eo0yXSCzUsJs
-eyEKH9y/NlLXUHOZV1klM1VHU5ECLzFK79kGB3W6ndeK2CrLEUtbdywFcynUnnWM
-8nU0Qfd10AO5+ezr8vLbcjlbJPQVlDx65P9TWkP0AYN8IU7LxZ498BXexB88OcYp
-</clause>
+eNptUU1r4zAQPce/4pFLEyhuWpZtackh/Ti0dJdl456NbE1itbZkpBEhLPvfd2Qt
+gULB+DB6875m9MbyYr59+P38q3p6xMPr5m37dIuNbwx7xaRBofXucIuqMwHy3bvm
+LKDtVQyEnfPw1Dqvjd0jITyN/RHssOlNS4LUJoyRqZwvCxQwOywusV7Dblnol8DF
+BabBhEenThv6DgdlOBEnmaw70Zf48bat0BCMBSfVkMjKAn9mxSwzY42ru4ldFifa
+tGpIl/jpDidmZ/ES9Z7Sf7LtyWryUHiX8UCWy2LWONfXjWvqHG4N9pE+k7vdzrRG
+9fL8X+erDrCoOu/ivnORIeDsO5znEJ4GZayEoVGl7ieu1K2YXhazwP6TiQQaaplK
+jmym6ihPiSXCqEIQG1LR6WrBaBKrIkci7fyxLISXuA6iY3Woo2XT12wG8ov599W3
+m9Vqnm90Da2OARMglzXEwBjUB0lZPvbiQg7wt/gHk/fGIA==
 
+</clause>
 <clause
  name="judy_render_judgment">
-eJytVlFv2kgQfjbv9z7locU6cJuEp3I5KU1oQ9VAFYiqe0KLvcDeGRvtroNQmt/U
-v3jf7NpgKLmTThcRhNez33w7883MNn78QmutMttqjq/vB18n/Ru6/nL1MO6/pys9
-U1YLKxOSJtb55j1NlsoQPp+LZCH5e/vGUJyKwkia55q0zBIJuAX9CYuVzCypjOxS
-knzkh3xOghJl1oWVUTNsUIPUnFrndHlJ2djCVxgEb9/SGS9cpSqWtBSm2pG06UM+
-cytarlMlkx5thLLsj73vWVGWb8jmJR/4rOhEdPcwntBMel44imGvUYOeGsGj0JR9
-VFlyFlzSWmixmhrLp4nmWGw1HaFm2KtZnp+2FDvLmu3FaVsc6RCze9pu5u2ossyL
-LHGMYN4569WXAVktNjicnf/+5/YbaesOSWTJ3hPHOc4zK8pMp/lGGkupXCAzKwQX
-K7GwKs8cFiTAVqaY+dOVCwrcxUoaapUwnDEJdblIhIT0ds5YLFlukWy4jhiuEbB+
-fNLo90t6F9LTAdXLMqM9eva23vi8NH79mqqF3+r7whdwzh1OzevFkVcOSGl7ceSz
-e+yzu/OJXeFJjK7D+B9S+KH/ZfSNJreDMX0dDYaTtotl7YAohc5Z2+fGJ2YjTPam
-DDYJSyJNIxrM9yQd8G4fLP5lI7C3JLSkd5zOhZYQh3YufcrNCpYo1zyTFTQvb1SW
-sd1Mxq7RKFu9geFeK8T1DZUZmittbCkPwExu+zS8uuvTXX84GYyGaHEfB/djhODD
-H+7l54ebT/02ITT89G0wHPbv23R1fT26vxkMP9Fk5AN3Pbrpv3rlMeFVyxU0z/2l
-1HQl2UTGyoAJxSJDn4nTImFrYfIM4WmTtHGENoUiWYm/uBS0O4YD9ocFCFcDVf0p
-weHR4WRZYEbqqFGJcJ9CL69G8IT/wLdT6OiiF7ie6vqi66aglwCSW6bfuM6NUbN0
-G0WI2nNQR2YtOlyHcYvafoRztkPDPLI7rCDABE/8VVJBR+r2GAS7d1xEbAskfXtA
-CljADyD8Z5wSopoisttp1cOP2mOvyodblJAUfhkDLHQSP6u2taRE1BppWvJUsFau
-1pYVaop4GYVlt9yR27ewGsEWM5TKMoKPXsk4dJtH/GKjjGxTknOzWnJFdDpI9RZT
-x4DnShm7Xct6A2td1CYgff9OrW5tIfTBnuV5+lMkrC7kcYLz+VzFyoXVD0DQ3g1A
-PqQfFWw/ya1IA+DsohwXNrL5lK8EIf26X/dIB6995BmBxAqJd/O9DPdabNul9jkA
-IgGI8mOA5lKaKKh4wMOeCQ6Ul3lt7Qli7JXGM9wMqMhQFGY5nUNrpuXYiTi2bfJz
-d+reNtsHyIhhUAq2Hms+gXt+uTpYihx+7//8J//e5ykCTrrlaxef0Ks6kCm3sflh
-lplK90UqZU38ExFcEE7TeJEHPolECapHEJjyENd4aoVceI6kFx5vl1rnmhFtYeC5
-WbtrIVuLhRMZ18Tu4uevhWjbBeor1gqVhsEAzmKWSr40JFyrK4UeLmAscSjf/Ggm
-uHohFFelmdmg4zSZE2Zh428XJE2U
-</clause>
+eNqtVt9v2kgQfjZ/xZSHFuvALQlP5XJSftCGqoEqEFX3hBZ7gb0zNtpdB6E0/3u/
+2bXB0ESVTocIitez33w7883MNjZaZbbVnFzfD79NBzd0/fXyYTL4SJd6rqwWViYk
+Tazz7UearpQhfL8UyVLy7+6doTgVhZG0yDVpmSUScEv6BxZrmVlSGdmVJPnID/mC
+BCXKbAoro2bYoAapBbXO6OKCsomFr5Dwef+eurx0mapY0kqYak/Spqt87la03KRK
+Jn3aCmXZI/s/8KIs35LNS0bwWhGK6O5hMqW59MxwGMN+owY9NYJHoSn7pLKkG1zQ
+RmixnhnL54kWWGw1HaFm2K9Znr1sKfaWNdvzl21xpGPM3st2c29HlWVeZIljBPNO
+t19fBmS12AgQzs5//7j9Rtq6QxJZcvDEcY7zzIoy12m+lcZSKpfIzBrBxUosrMoz
+hwURsJUp5v505YICd7GWhlolDGdMQl8uEiEhvZ0uyyXLLZIN1xHDNQJWkE8a/XVB
+H0J6OqJ6UWa0T8/e1huflcZv31K18Gd9X/gKzpnDqXk9P/HKASltz0989k599vY+
+sSt8EaPnMP6HFF4Nvo6/0/R2OKFv4+Fo2naxrB0QpdDptn1ufGK2wmTvymCTsCTS
+NKLh4kDSAe/3weI3G4G9I6ElfeB0LrWEOLRz6VNu1rBEueaZrKB5eauyjO3mMnat
+RtnqDQwPWiGub6jM0EJpY0t5AGZ6O6DR5d2A7gaj6XA8QpP7NLyfIARXf7uXXx5u
+Pg/ahNDw0/fhaDS4b9Pl9fX4/mY4+kzTsQ/c9fhm8OaNx4RXLdfQPPeXUtOVZBMZ
+KwMmFIsMfSZOi4SthckzhKdN0sYR2hSKZC3+5VLQ7hgO2B8WIFwNVPWnBIdHh5Nl
+gRmpo0YlwkMKvbwawRP+At9QoaPzfhAwsuuLrpuCXgJIbpl+4yY3Rs3TXRQhas9B
+HZm16HAdxi1q+xHO2Q4N88TuuIIAEzzxT0kFHanXZxDs3nMRsS2Q9N0RKWABP4Dw
+n3FKiGqGyO5mVQ8/aY/9Kh9uUUJS+M8YYKGT+Gm1qyUlotZY04qngrVyvbGsUFPE
+qygsu+We3KGF1Qi2mKFUlhF89ErGods85hdbZWSbkpyb1YorotNBqneYOgY818rY
+3UbWG1jrvD4Df/ygVq+2EPpgz/M8/SUSVhfyNMH5YqFi5cLqByBo7wcgH9KPCraf
+5lakAXD2UY4LG9l8xpeCkP44rHuko9c+8oxAYo3Euwlfhnsjdu1S+xwAkQBE+TFA
+CylNFFQ84OHABAfKy7y2DgQx9krjOW4GVGQoCrOaLaA10xJxbB3FNvm5O3Nvm+0j
+ZMQwKAVbjzWfwD2/Xh0sRQ6/93/2sn/n+JSAk65f8fEJvaoDmXIbWxxnman0XqVS
+1sRvieCW8AuNV3ngm0iUoHoEgRkPcY2nVsiF50h64fF2qXWuGdEWBp6btbsWsrVc
+OpFxTeyvfv5iiLZdoL5irVBpGAzgLOap5EtDwrW6VujhAsYSh/LNj+aCqxdCcVWa
+mS06TpM5YRY2Gj8BljhNKA==
 
+</clause>
 <clause
- name="may_cancel_contract">
-eJwlyzEOQEAQBdDeKX5UNC6gEBEdCp1KxmTJxhoyOwq3l9C+5CULcKkXy9K+ntDU
-Q9N2FbJVzwMHPTOTsAszn2JKbGAKYSHeC4zObhUvG1YK0eErkdVfVuRpXv5cInkB
-heQhbw==
-</clause>
+ name="on_activate">
+eNqVUk2P1DAMPbe/wvRCKpbuaBEHFnEowyIhIS1ihnPlSTw7gTRZxe6iCvHfcT8W
+GIkLVS+xn9978ct99lFMtdt+/vBpf/MOth/bL7uba2jzwUtGIQfENqfv17A/eQb9
+5URgAw5McEx5Pt7G1op/ULip4ZTStwbMbQQE7jGLTVGprDR1VZdFcXmpVATYpyEK
+tMFbmmiZovPxDiTB23QoFmC7gJgEkL1bFNF9HZy3KD5FOBKxqsUUn2c6DtHhIVBT
+w3/O/z1bPmCGuE+CYSfIJ3LFGzAsucPJbLc4byR10+5qeAZTTznHzg7/rme9HOWz
+dv161lHIHyXV0baWdBHmzIGiYcYf1sK8N8UrgZ67yT0btFYWkxdQLWbndnVxrlMr
+mT+CeXLGpkv7URaTZ8o55WlUBjbVe/RB34Hkcc0H17DXpwG/AwazTUNw8anAna58
+NjWnDvo5epzrHgdMXf4sKehL0qx2g7XEvFxoUlrGZ08kHZNOOe509T504nvKprp6
++epqs9lU9RT2iw04HBlmBNzj2JNmj4OkXrO2GMKoVWbi9ZE1ql7+AnrQBmI=
 
+</clause>
 <clause
- name="may_execute_clause">
-eJyVzcEKgjAcx3Ho6FP88aDbpRcQiQiP3QrqNP7Ov2FtU+YGSfa6PUeahTehy+DH
-/8tnwWvV2Mo4Fu63Z8hO2e54yDbASltr0NgJupP0joRU6FsCiUrlKG9rHvIEqhIY
-MNagRS2G13XCoCZIU4iniaqSFHOIIvhmEzR3n0IUVdvM38ScQ98vy3mdL7rDXVhq
-VPeHefVFt4iOwaCaguwYXzQZN8IcHmDJeWvAWU8JPH+zRNUOO3gDewh7CA==
-</clause>
+ name="on_process">
+eNq1lE1v2zAMhs/2r2BzqY1l7todBrTIIet66DCgRZNhR0OWmUSrLQWS3CAY9t9H
+Svlql7T7BHKI9cH3JflQc6u0z3qjy7vr2/HVB7j8NPw8ujqHoa2Ut8JjDeikNYtz
+GM+UA/r5GYJsROcQJsaGzxt9a41E57IcZsbcF5DdaBDgWmG9NJoiSV/kvTyFFNQE
+sjcwGIAeeRLI4eQE4rexrWjA8WofWqNxCVODpGjgval2VYoUvqUJXRx1klcKuPbH
+DipElqWrflbArViGe0LX8LGrl/3wr0byoh5II2aydpcmztsSrTW2ZAudgwH0VvGP
+9sXPSEDp6XMavP1IJe9dpGnyICxUpxS/0yTlZuWk07XLhJS+/Bqi9ESjJJZht9cH
+tsYbpex8niScOWdHilMMujBDuy4gnYFMGxA1XVGSXBgNE0Sq0tUD2qWfsa0Fak8N
+MoZSyVeWzvZbqky111FcEa3pNLuKptYV4bQjOhBPFCuRt/tFQrDDiVvUNdqYPwnd
+IV9lLdqdtpwLZUjnlZYIT5NfCAcauZHCLslHmmwpKNe9yYjO7ylgQ2Azo6c7jLJk
++P6CFEzxWDD7lCdRYXHeUMsqKrumbHlM3kEtlg6ERejmR2tYs1Fwx9WpVa2PfbwK
+SoNXLbkfcu6wUJpQWxJFE9E1nruzD00Oo5EaGqIorCN7awsckceV9Dekck/iXFVC
+3vNcDWPVGypN4IjS0Ua/tqG8omqQy7pDrR4bL5oRdwfrZADZUw4Kb0p+UnJ4ta95
+m+38IgakM9uQFJD2aYnMZo+k8n8wNn84NHny/HQcBHfrP9+Zjdjjn6ajD/Omi4/r
+fyP67AnR4Zsx2gDEDJMFvVukiVAN8U6wtOIe6fmrUSrHJlbcbviOeIdL+/kOoamd
+UNOzzvtT9DAXqgbhQTRNEcJcazCWeGFJgh5IaW6NR7l9TjvnTYu2v0M0oe64aI/I
+PvCqB4vr2WE0Kb9tXi/OS5iH5G8GYncSXhqU35uTF8bkl2A9iFPCPP0Ayb/GXA==
 
+</clause>
 <clause
- name="process_clause">
-eJy1lE1P20AQhs/2qT9hyAVbdU2hh0qgHCjlQFWpiFD1GK13J8kWezfaXYOiqn+r
-v68z6zgJkEA/pRzi/Zj3nZlnNv3xAuZOm5ANRmdXF5fX5+/h7OPp59H5MZy6Sgcn
-AipAL529O4brmfZAvzBDkLVoPcLEuvj5yVw6K9H7LIeZtTclZJ8MCPCNcEFaQ5Fk
-KPNBnkIKegLZaxgOwYwCCeRJcnAA3YJ1jajB83IBjTW4gKlFkrTwzlabMmUK31K+
-OGolr5RwEfY9VIisS1fDrIRLsYj3hFHwoVWLIv5TSGb0LWl0qfT20sQHN0bnrBuz
-hdbDEAbL+Hvb4mckoM30KQ3evqeSD07SNLkVDqpDit8akvKz8aQ1ymdfKcBYSBkK
-GIhaSxzH3UERrcVd2QaqGGfO2ZHiFKMuzND1BaQzkBkLQtEVLcmFNTBBpCqd36Jb
-hBnbukMTqEPWUir50tLRI0uVrbY7ipa6JdHY1oS8d9WXhPPu4IHuRLlUefNIZRnn
-ycwdGoWuKwAJXSFfZS3anTacDKVYgNdGIjzM/k54MMidFG5BPtJkjcG4b05GfH5P
-AWtCmyk93KSUJOP3F6RgmgeD6ac8CQuH85o6X1HdDWXLg/IWlFh4EA6hne/1tGaj
-6I6ro7Qy+6G7CtpA0A25P+Xc4U4bYm1BGE1EWwduzzY2OYxB6miMolF18PUWOCIP
-LOmvUOWedINVCXnDgxUVC6ipNBEkSsdY88rF8oqqRi7rBrbm2gZRj7g7qJIhZA85
-KIMd86OSw0vY0rzVdn7SBaQz65AUkPZpicxm96TyfzA3fzg1ebJzPJ4Gd+0/35iN
-rsePpqOAed12z+t/I/roAdHxmzFaAcQMkwWzWaSJ0DXxTrA04gbp/VMotWcTS25X
-fHd4x0vb+Y6hqZ2g6F3n/SkGmAutQAQQdV3GMBcGrCNeWJKgB1KaOxtQrt/T1gfb
-oCs2iCbUPRftHtk7nvVosZ8dRpPyW+f17LzEeUj+ZiA2J+G5Qfm9Odk9Jr8O606c
-EubpJ/4gxr0=
-</clause>
+ name="party_may_cancel_contract">
+eNorKMrMK9FQ8nWMVHB29HN29bFX0Egrys9VyE2sjE9OzEtOzYlPzs8rKUpMLlFI
+TszJSUpMztZTCEotKS3Ky8xLV0hLzClOVQBrKU4uyiwo0dNU0rTm4gKLW3MBAEC2
+IJc=
 
+</clause>
+<clause
+ name="party_may_execute_clause">
+eNqVzcEKgkAQgOG7TzF40N1LLyASER67FdRpGdcxrN11WXchyd49zcKb0GVgmJ9v
+rGuMZ/Fhd4HiXOxPx2ILrHatBo29oAfJ4ElIhaEjkKhUifK+4THPoqipgQFjFh1q
+MU7fC4OaIM8hnVdUjaSUQ5LAN5ulpfsUomo6u/xJOYdhWJfLtlx1x7twZFX/h3kL
+Vb+KTsGomorcFF81GT/BHJ7gyAdnwLtAGbx+a42qoyx6A7H1eeo=
+
+</clause>
 <hook
- name="cron_activate"
- clause="activate_clause" />
-
+ clause="on_activate"
+ name="cron_activate" />
 <hook
- name="cron_process"
- clause="process_clause" />
-
+ clause="on_process"
+ name="cron_process" />
 <callback
- name="callback_party_may_cancel_contract"
- clause="may_cancel_contract" />
-
+ clause="party_may_cancel_contract"
+ name="callback_party_may_cancel_contract" />
 <callback
- name="callback_party_may_execute_clause"
- clause="may_execute_clause" />
+ clause="party_may_execute_clause"
+ name="callback_party_may_execute_clause" />
 
 </bylaw>
 
 </scriptableContract>
-
-<accountList type="stash" count="0" >
-
-</accountList>
+<accountList
+ count="0"
+ type="stash" />
 
 </smartContract>
-
 -----BEGIN SMARTCONTRACT SIGNATURE-----
-Version: Open Transactions 0.89.h
+Version: Open Transactions 0.94.0-562-ga35c82f
 Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
-Meta:    SDT9
+Meta:    SFUK
 
-CoABkUJPC9+2hWhCBarIY9X54qyyMlyVjSjBU3aIqVfXeG8J2KpBkShU6kspM6qq
-EHAeAdJ01+CVnLtsPzA9Tj6IXkiBfRYa0BFjXammTeh8DY4Y4sokdLggH3cTOzTx
-9C7Vgqs2tr+xM3fOi1Y2KR1I/Hes2EtDgDgRoJGwacoiWPo=
+KqWhqnnCEFhZdjl8EYjL+sL5fyRRD1cC8WwFug02E7viWcFI6/gP9SQ06iOOmSNG
+yJgn7XCbicihg80U4Qk1SOLwUMC8oL9xMvYZ94aXassXJAV1tqcMde7/KmpnPIbJ
+qzkGX86ykoaZbWNjpYeHb6CMdjWw8SKsHw36ldePQH4=
 -----END SMARTCONTRACT SIGNATURE-----

@@ -1022,6 +1022,42 @@ std::string OTAPI_Exec::CalculateServerContractID(
     return "";
 }
 
+std::string OTAPI_Exec::CalculateContractID(
+    const std::string& str_Contract) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (str_Contract.empty()) {
+        otErr << __FUNCTION__ << ": Null: str_Contract passed in!\n";
+        return "";
+    }
+    std::string str_Trim(str_Contract);
+    std::string str_Trim2 = String::trim(str_Trim);
+    String strContract(str_Trim2.c_str());
+
+    if (strContract.GetLength() < 2) {
+        otOut << __FUNCTION__ << ": Empty contract passed in!\n";
+        return "";
+    }
+    
+    Contract * pContract = ::InstantiateContract(strContract);
+    std::unique_ptr<Contract> theAngel(pContract);
+    
+    if (nullptr != pContract) {
+        Identifier idOutput;
+        pContract->CalculateContractID(idOutput);
+        const String strOutput(idOutput);
+        std::string pBuf = strOutput.Get();
+
+        return pBuf;
+    }
+    return "";
+}
+
 // Creates a contract based on the contents passed in,
 // then sets the contract key based on the NymID,
 // and signs it with that Nym.
@@ -5495,6 +5531,53 @@ std::string OTAPI_Exec::Create_SmartContract(
     return strOutput.Get();
 }
 
+// RETURNS:  the Smart Contract itself. (Or "".)
+//
+std::string OTAPI_Exec::SmartContract_SetDates(
+        const std::string& THE_CONTRACT,  // The contract, about to have the
+                                          // dates changed on it.
+        const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
+                                          // signing at this point is only to
+                                          // cause a save.)
+        const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
+        const time64_t& VALID_TO) const   // Default (0 or nullptr) == no expiry / cancel
+                                          // anytime.
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (OT_TIME_ZERO > VALID_FROM) {
+        otErr << __FUNCTION__ << ": Negative: VALID_FROM passed in!\n";
+        return "";
+    }
+    if (OT_TIME_ZERO > VALID_TO) {
+        otErr << __FUNCTION__ << ": Negative: VALID_TO passed in!\n";
+        return "";
+    }
+    const String strContract(THE_CONTRACT);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    time64_t tValidFrom = VALID_FROM;
+    time64_t tValidTo = VALID_TO;
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_SetDates(
+        strContract,    // The contract, about to have the dates changed on it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point is only to cause a save.)
+        tValidFrom,     // Default (0 or "") == NOW
+        tValidTo,       // Default (0 or "") == no expiry / cancel anytime
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
 //
 // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
 // custom languages in their scripts.  For now I have a default language, so
@@ -5505,6 +5588,46 @@ std::string OTAPI_Exec::Create_SmartContract(
 std::string OTAPI_Exec::SmartContract_AddBylaw(
     const std::string& THE_CONTRACT,  // The contract, about to have the bylaw
                                       // added to it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point is only to cause a
+                                      // save.)
+    const std::string& BYLAW_NAME) const // The Bylaw's NAME as referenced in
+                                         // the
+                                         // smart contract. (And the scripts...)
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (BYLAW_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: BYLAW_NAME passed in!\n";
+        return "";
+    }
+    const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_AddBylaw(
+        strContract,    // The contract, about to have the bylaw added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strBylawName,   // The Bylaw's NAME as referenced in the smart contract.
+                        // (And the scripts...)
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
+// returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_RemoveBylaw(
+    const std::string& THE_CONTRACT,  // The contract, about to have the bylaw
+                                      // removed from it.
     const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
                                       // at this point32_t is only to cause a
                                       // save.)
@@ -5528,7 +5651,7 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
-    const bool& bAdded = OTAPI()->SmartContract_AddBylaw(
+    const bool& bAdded = OTAPI()->SmartContract_RemoveBylaw(
         strContract,    // The contract, about to have the bylaw added to it.
         theSignerNymID, // Use any Nym you wish here. (The signing at this
                         // point32_t is only to cause a save.)
@@ -5571,10 +5694,6 @@ std::string OTAPI_Exec::SmartContract_AddClause(
         otErr << __FUNCTION__ << ": Null: CLAUSE_NAME passed in!\n";
         return "";
     }
-    if (SOURCE_CODE.empty()) {
-        otErr << __FUNCTION__ << ": Null: SOURCE_CODE passed in!\n";
-        return "";
-    }
 
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
         strClauseName(CLAUSE_NAME), strSourceCode(SOURCE_CODE);
@@ -5596,6 +5715,110 @@ std::string OTAPI_Exec::SmartContract_AddClause(
     //
     return strOutput.Get();
 }
+
+// returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_UpdateClause(
+    const std::string& THE_CONTRACT,  // The contract, about to have the clause
+                                      // updated on it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
+    const std::string& CLAUSE_NAME, // The Clause's name as referenced in the
+                                    // smart contract. (And the scripts...)
+    const std::string& SOURCE_CODE) const // The actual source code for the
+                                          // clause.
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (BYLAW_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: BYLAW_NAME passed in!\n";
+        return "";
+    }
+    if (CLAUSE_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: CLAUSE_NAME passed in!\n";
+        return "";
+    }
+    if (SOURCE_CODE.empty()) {
+        otErr << __FUNCTION__ << ": Null: SOURCE_CODE passed in!\n";
+        return "";
+    }
+
+    const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
+        strClauseName(CLAUSE_NAME), strSourceCode(SOURCE_CODE);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_UpdateClause(
+        strContract,    // The contract, about to have the clause added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strBylawName,   // Should already be on the contract. (This way we can
+                        // find it.)
+        strClauseName, // The Clause's name as referenced in the smart contract.
+                       // (And the scripts...)
+        strSourceCode, // The actual source code for the clause.
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
+    // returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_RemoveClause(
+    const std::string& THE_CONTRACT,  // The contract, about to have the clause
+                                      // added to it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& BYLAW_NAME,  // Should already be on the contract. (This
+                                    // way we can find it.)
+    const std::string& CLAUSE_NAME) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (BYLAW_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: BYLAW_NAME passed in!\n";
+        return "";
+    }
+    if (CLAUSE_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: CLAUSE_NAME passed in!\n";
+        return "";
+    }
+    const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
+        strClauseName(CLAUSE_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_RemoveClause(
+        strContract,    // The contract, about to have the clause added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strBylawName,   // Should already be on the contract. (This way we can
+                        // find it.)
+        strClauseName, // The Clause's name as referenced in the smart contract.
+                       // (And the scripts...)
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
 
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddVariable(
@@ -5672,6 +5895,57 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
 }
 
 // returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_RemoveVariable(
+    const std::string& THE_CONTRACT, // The contract, about to have the variable
+                                     // added to it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& BYLAW_NAME, // Should already be on the contract. (This
+                                   // way we can find it.)
+    const std::string& VAR_NAME    // The Variable's name as referenced in the
+                                    // smart contract. (And the scripts...)
+    ) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (BYLAW_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: BYLAW_NAME passed in!\n";
+        return "";
+    }
+    if (VAR_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: VAR_NAME passed in!\n";
+        return "";
+    }
+
+    const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
+        strVarName(VAR_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_RemoveVariable(
+        strContract,    // The contract, about to have the clause added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strBylawName,   // Should already be on the contract. (This way we can
+                        // find it.)
+        strVarName,  // The Variable's name as referenced in the smart contract.
+                     // (And the scripts...)
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
+    
+// returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddCallback(
     const std::string& THE_CONTRACT, // The contract, about to have the callback
                                      // added to it.
@@ -5731,6 +6005,57 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
 }
 
 // returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_RemoveCallback(
+    const std::string& THE_CONTRACT, // The contract, about to have the callback
+                                     // removed from it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& BYLAW_NAME, // Should already be on the contract. (This
+                                   // way we can find it.)
+    const std::string& CALLBACK_NAME  // The Callback's name as referenced in
+                                      // the smart contract. (And the
+                                      // scripts...)
+    ) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (BYLAW_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: BYLAW_NAME passed in!\n";
+        return "";
+    }
+    if (CALLBACK_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: CALLBACK_NAME passed in!\n";
+        return "";
+    }
+
+    const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
+        strCallbackName(CALLBACK_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_RemoveCallback(
+        strContract,     // The contract, about to have the clause added to it.
+        theSignerNymID,  // Use any Nym you wish here. (The signing at this
+                         // point32_t is only to cause a save.)
+        strBylawName,    // Should already be on the contract. (This way we can
+                         // find it.)
+        strCallbackName, // The Callback's name as referenced in the smart
+                         // contract. (And the scripts...)
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
+// returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddHook(
     const std::string& THE_CONTRACT,  // The contract, about to have the hook
                                       // added to it.
@@ -5774,6 +6099,67 @@ std::string OTAPI_Exec::SmartContract_AddHook(
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddHook(
+        strContract,    // The contract, about to have the clause added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strBylawName,   // Should already be on the contract. (This way we can
+                        // find it.)
+        strHookName,    // The Hook's name as referenced in the smart contract.
+                        // (And the scripts...)
+        strClauseName,  // The actual clause that will be triggered by the hook.
+                        // (You can call this multiple times, and have multiple
+                        // clauses trigger on the same hook.)
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
+// returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_RemoveHook(
+    const std::string& THE_CONTRACT,  // The contract, about to have the hook
+                                      // removed from it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& BYLAW_NAME, // Should already be on the contract. (This
+                                   // way we can find it.)
+    const std::string& HOOK_NAME,  // The Hook's name as referenced in the smart
+                                   // contract. (And the scripts...)
+    const std::string& CLAUSE_NAME) const // The actual clause that will be
+                                          // triggered
+                                          // by the hook. (You can call this multiple
+                                          // times, and have multiple clauses trigger
+                                          // on the same hook.)
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (BYLAW_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: BYLAW_NAME passed in!\n";
+        return "";
+    }
+    if (HOOK_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: HOOK_NAME passed in!\n";
+        return "";
+    }
+    if (CLAUSE_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: CLAUSE_NAME passed in!\n";
+        return "";
+    }
+
+    const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
+        strHookName(HOOK_NAME), strClauseName(CLAUSE_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_RemoveHook(
         strContract,    // The contract, about to have the clause added to it.
         theSignerNymID, // Use any Nym you wish here. (The signing at this
                         // point32_t is only to cause a save.)
@@ -5844,6 +6230,47 @@ std::string OTAPI_Exec::SmartContract_AddParty(
     return strOutput.Get();
 }
 
+// RETURNS: Updated version of THE_CONTRACT. (Or "".)
+std::string OTAPI_Exec::SmartContract_RemoveParty(
+    const std::string& THE_CONTRACT,  // The contract, about to have the party
+                                      // added to it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& PARTY_NAME     // The Party's NAME as referenced in the
+                                      // smart contract. (And the scripts...)
+    ) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (PARTY_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: PARTY_NAME passed in!\n";
+        return "";
+    }
+
+    const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_RemoveParty(
+        strContract,    // The contract, about to have the bylaw added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strPartyName,   // The Party's NAME as referenced in the smart contract.
+                        // (And the scripts...)
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
 // Used when creating a theoretical smart contract (that could be used over and
 // over again with different parties.)
 //
@@ -5897,6 +6324,55 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
                         // (And the scripts...)
         strAcctName, // The Account's name as referenced in the smart contract
         strInstrumentDefinitionID, // Instrument Definition ID for the Account.
+        strOutput);
+    if (!bAdded || !strOutput.Exists()) return "";
+    // Success!
+    //
+    return strOutput.Get();
+}
+
+// returns: the updated smart contract (or "")
+std::string OTAPI_Exec::SmartContract_RemoveAccount(
+    const std::string& THE_CONTRACT,  // The contract, about to have the account
+                                      // removed from it.
+    const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
+                                      // at this point32_t is only to cause a
+                                      // save.)
+    const std::string& PARTY_NAME,    // The Party's NAME as referenced in the
+                                      // smart contract. (And the scripts...)
+    const std::string& ACCT_NAME      // The Account's name as referenced in the
+                                      // smart contract
+    ) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return "";
+    }
+    if (SIGNER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
+        return "";
+    }
+    if (PARTY_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: PARTY_NAME passed in!\n";
+        return "";
+    }
+    if (ACCT_NAME.empty()) {
+        otErr << __FUNCTION__ << ": Null: ACCT_NAME passed in!\n";
+        return "";
+    }
+
+    const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME),
+        strAcctName(ACCT_NAME);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
+    String strOutput;
+
+    const bool& bAdded = OTAPI()->SmartContract_RemoveAccount(
+        strContract,    // The contract, about to have the clause added to it.
+        theSignerNymID, // Use any Nym you wish here. (The signing at this
+                        // point32_t is only to cause a save.)
+        strPartyName,   // The Party's NAME as referenced in the smart contract.
+                        // (And the scripts...)
+        strAcctName, // The Account's name as referenced in the smart contract
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!

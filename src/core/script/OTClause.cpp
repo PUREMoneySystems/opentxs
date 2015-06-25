@@ -81,6 +81,11 @@ OTClause::~OTClause()
         nullptr; // I wasn't the owner, it was a pointer for convenience only.
 }
 
+void OTClause::SetCode(const std::string & str_code)
+{
+    m_strCode.Set(str_code.c_str());
+}
+
 const char* OTClause::GetCode() const
 {
     if (m_strCode.Exists()) return m_strCode.Get();

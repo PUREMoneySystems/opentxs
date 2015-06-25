@@ -585,7 +585,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         string acctName =
             OTAPI_Wrap::Party_GetAcctNameByIndex(contract, name, acctIndex);
         if ("" == acctName) {
-            otOut << "Error: cannot rettrieve unconfirmed account.\n";
+            otOut << "Error: cannot retrieve unconfirmed account.\n";
             return -1;
         }
 
