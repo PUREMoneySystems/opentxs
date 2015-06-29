@@ -16,7 +16,7 @@
 $ sudo aptitude install git build-essential cmake pkg-config
 
 # Add PPA that provides libzmq with libsodium support
-sudo add-apt-repository -y ppa:monetas/opentxs && sudo aptitude update
+sudo add-apt-repository -y ppa:opentransactions/opentxs && sudo aptitude update
 # install Open-Transactions library dependencies
 $ sudo aptitude install libssl-dev protobuf-compiler libprotobuf-dev libzmq3-dev
 
@@ -124,7 +124,7 @@ $ make package
 $ ./script/install_sample_data.sh
 
 # also can checkout sample contracts,baskets,
-# server-contracts at https://github.com/monetas/opentxs-sample-data
+# server-contracts at https://github.com/Open-Transactions/opentxs-sample-data
 
 # for python client api support export env variable
 $ export PYTHONPATH=/usr/local/lib:$PYTHONPATH

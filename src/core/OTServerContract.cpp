@@ -74,11 +74,7 @@ OTServerContract::OTServerContract(String& name, String& foldername,
 OTServerContract::~OTServerContract()
 {
     if (nullptr != m_transportKey) {
-        // I'm doing this cast because although m_transportKey is
-        // an unsigned char *, it was originally allocated in a
-        // call to uint8_t * OTCrypto_OpenSSL::Base64Decode.
-        //
-        uint8_t * pKey = static_cast<uint8_t *>(m_transportKey);
+        uint8_t * pKey = m_transportKey;
         delete [] pKey;
         m_transportKey = nullptr;
         m_transportKeyLength = 0;
