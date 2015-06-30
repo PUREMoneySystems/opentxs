@@ -376,21 +376,21 @@ void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
 {
     if (!(GetName().Compare(rhs.GetName()))) {
-        otOut << "OTPartyAccount::Compare: Names don't match: " << GetName()
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Names don't match: " << GetName()
               << " / " << rhs.GetName() << " \n";
         return false;
     }
 
     if ((GetClosingTransNo() > 0) && (rhs.GetClosingTransNo() > 0) &&
         (GetClosingTransNo() != rhs.GetClosingTransNo())) {
-        otOut << "OTPartyAccount::Compare: Closing transaction numbers don't "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Closing transaction numbers don't "
                  "match: " << GetName() << " \n";
         return false;
     }
 
     if ((GetAcctID().Exists()) && (rhs.GetAcctID().Exists()) &&
         (!GetAcctID().Compare(rhs.GetAcctID()))) {
-        otOut << "OTPartyAccount::Compare: Asset account numbers don't match "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Asset account numbers don't match "
                  "for party account " << GetName() << ".\n( " << GetAcctID()
               << "  /  " << rhs.GetAcctID() << " ) \n";
         return false;
@@ -398,19 +398,18 @@ bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
 
     if ((GetAgentName().Exists()) && (rhs.GetAgentName().Exists()) &&
         (!GetAgentName().Compare(rhs.GetAgentName()))) {
-        otOut << "OTPartyAccount::Compare: Agent names don't match for party "
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Agent names don't match for party "
                  "account " << GetName() << ".\n( " << GetAgentName() << "  /  "
               << rhs.GetAgentName() << " ) \n";
         return false;
     }
 
-    if (!(GetInstrumentDefinitionID().Exists()) ||
-        !(rhs.GetInstrumentDefinitionID().Exists()) ||
-        !(GetInstrumentDefinitionID().Compare(
-            rhs.GetInstrumentDefinitionID()))) {
-        otOut << "OTPartyAccount::Compare: Instrument Definition IDs don't "
-                 "exist, or "
-                 "don't match ( " << GetInstrumentDefinitionID() << " / "
+    if (
+        (GetInstrumentDefinitionID().Exists() && rhs.GetInstrumentDefinitionID().Exists()) &&
+        !GetInstrumentDefinitionID().Compare(rhs.GetInstrumentDefinitionID())
+        ) {
+        otOut << "OTPartyAccount::" << __FUNCTION__ << ": Instrument Definition IDs don't "
+                 "exist, or don't match ( " << GetInstrumentDefinitionID() << " / "
               << rhs.GetInstrumentDefinitionID()
               << " ) for party's account: " << GetName() << " \n";
         return false;

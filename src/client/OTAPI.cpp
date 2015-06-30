@@ -1100,9 +1100,11 @@ std::string OTAPI_Wrap::ConfirmPaymentPlan(const std::string& NOTARY_ID,
 
 std::string OTAPI_Wrap::Create_SmartContract(const std::string& SIGNER_NYM_ID,
                                              const time64_t& VALID_FROM,
-                                             const time64_t& VALID_TO)
+                                             const time64_t& VALID_TO,
+                                             bool SPECIFY_ASSETS,
+                                             bool SPECIFY_PARTIES)
 {
-    return Exec()->Create_SmartContract(SIGNER_NYM_ID, VALID_FROM, VALID_TO);
+    return Exec()->Create_SmartContract(SIGNER_NYM_ID, VALID_FROM, VALID_TO, SPECIFY_ASSETS, SPECIFY_PARTIES);
 }
 
 std::string OTAPI_Wrap::SmartContract_SetDates(const std::string& THE_CONTRACT,
@@ -1112,7 +1114,17 @@ std::string OTAPI_Wrap::SmartContract_SetDates(const std::string& THE_CONTRACT,
 {
     return Exec()->SmartContract_SetDates(THE_CONTRACT, SIGNER_NYM_ID, VALID_FROM, VALID_TO);
 }
+    
+bool OTAPI_Wrap::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT)
+{
+    return Exec()->Smart_ArePartiesSpecified(THE_CONTRACT);
+}
 
+bool OTAPI_Wrap::Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT)
+{
+    return Exec()->Smart_AreAssetTypesSpecified(THE_CONTRACT);
+}
+    
 std::string OTAPI_Wrap::SmartContract_AddBylaw(const std::string& THE_CONTRACT,
                                                const std::string& SIGNER_NYM_ID,
                                                const std::string& BYLAW_NAME)
@@ -1162,11 +1174,12 @@ std::string OTAPI_Wrap::SmartContract_AddHook(const std::string& THE_CONTRACT,
 
 std::string OTAPI_Wrap::SmartContract_AddParty(const std::string& THE_CONTRACT,
                                                const std::string& SIGNER_NYM_ID,
+                                               const std::string& PARTY_NYM_ID,
                                                const std::string& PARTY_NAME,
                                                const std::string& AGENT_NAME)
 {
     return Exec()->SmartContract_AddParty(THE_CONTRACT, SIGNER_NYM_ID,
-                                          PARTY_NAME, AGENT_NAME);
+                                          PARTY_NYM_ID, PARTY_NAME, AGENT_NAME);
 }
 
 std::string OTAPI_Wrap::SmartContract_AddAccount(

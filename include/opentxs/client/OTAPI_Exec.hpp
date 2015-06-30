@@ -1298,8 +1298,9 @@ public:
                                           // signing at this point is only to
                                           // cause a save.)
         const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
-        const time64_t& VALID_TO // Default (0 or nullptr) == no expiry / cancel
-                                 // anytime
+        const time64_t& VALID_TO,         // Default (0 or nullptr) == no expiry / cancel anytime
+        bool SPECIFY_ASSETS, // Asset type IDs must be provided for every named account.
+        bool SPECIFY_PARTIES // Nym IDs must be provided for every party.
         ) const;
 
     EXPORT std::string SmartContract_SetDates(
@@ -1313,6 +1314,10 @@ public:
                                  // anytime
         ) const;
 
+    
+    EXPORT bool Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) const;
+    EXPORT bool Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT) const;
+    
     //
     // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
     // custom languages in their scripts. For now I have a default language, so
@@ -1491,6 +1496,7 @@ public:
         const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                           // signing at this point is only to
                                           // cause a save.)
+        const std::string& PARTY_NYM_ID,  // Required when the smart contract is configured to require parties to be specified. Otherwise must be empty.
         const std::string& PARTY_NAME, // The Party's NAME as referenced in the
                                        // smart contract. (And the scripts...)
         const std::string& AGENT_NAME  // An AGENT will be added by default for

@@ -160,6 +160,11 @@ protected:
                        // smart contract would normally want to log its
                        // transaction #, not just the clause name.)
 public:
+    EXPORT void specifyParties(bool bNewState);
+    EXPORT void specifyAssetTypes(bool bNewState);
+    EXPORT bool arePartiesSpecified() const;
+    EXPORT bool areAssetTypesSpecified() const;
+    
     EXPORT virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
     int32_t GetPartyCount() const
     {

@@ -839,6 +839,8 @@ public:
         time64_t VALID_FROM,             // Default (0 or nullptr) == NOW
         time64_t VALID_TO, // Default (0 or nullptr) == no expiry / cancel
                            // anytime
+        bool SPECIFY_ASSETS, // This means asset type IDs must be provided for every named account.
+        bool SPECIFY_PARTIES, // This means Nym IDs must be provided for every party.
         String& strOutput) const;
 
     EXPORT bool SmartContract_SetDates(
@@ -852,6 +854,12 @@ public:
                                          // anytime.
         String& strOutput) const;
 
+    EXPORT bool Smart_ArePartiesSpecified(
+        const String& THE_CONTRACT) const;
+    
+    EXPORT bool Smart_AreAssetTypesSpecified(
+        const String& THE_CONTRACT) const;
+    
     EXPORT bool SmartContract_AddBylaw(
         const String& THE_CONTRACT, // The contract, about to have the bylaw
                                     // added to it.
@@ -1007,6 +1015,7 @@ public:
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
                                          // cause a save.)
+        const String& PARTY_NYM_ID,//Optional. Some smart contracts require the party's Nym to be specified in advance.
         const String& PARTY_NAME, // The Party's NAME as referenced in the
                                   // smart contract. (And the scripts...)
         const String& AGENT_NAME, // An AGENT will be added by default for

@@ -855,7 +855,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     OTTransaction* pReplyNotice =
                         theNymbox.GetReplyNotice(lRequestNum);
 
-                    if (nullptr != pReplyNotice) {
+                    if (nullptr != pReplyNotice)
+                    {
                         // If so, remove it...
                         //
                         const bool bDeleted =
@@ -873,22 +874,22 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                 "to delete a box receipt, or "
                                 "while removing its stub from the Nymbox.\n");
 
-                        // ...and add lRequestNum to server's acknowledgment
-                        // list. (So this can't happen twice with same #.)
-                        //
-                        if (pNym->AddAcknowledgedNum(
-                                server_->m_strNotaryID,
-                                lRequestNum))   // doesn't save (here).
-                            bIsDirtyNym = true; // So we don't have to save EACH
-                                                // iteration, but instead just
-                                                // once at the bottom.
-
                         if (bRemoved)
                             bIsDirtyNymbox = true; // So we don't have to save
                                                    // EACH iteration, but
                                                    // instead just once at the
                                                    // bottom.
                     }
+                    // ...and add lRequestNum to server's acknowledgment
+                    // list. (So this can't happen twice with same #.)
+                    //
+                    if (pNym->AddAcknowledgedNum(
+                            server_->m_strNotaryID,
+                            lRequestNum))   // doesn't save (here).
+                        bIsDirtyNym = true; // So we don't have to save EACH
+                                            // iteration, but instead just
+                                            // once at the bottom.
+                        
                 } // If server didn't already have a record of this acknowledged
                   // request #.
             }

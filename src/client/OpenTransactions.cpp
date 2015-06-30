@@ -3358,7 +3358,9 @@ bool OT_API::Create_SmartContract(
                                      // signing at this point is only to cause
                                      // a save.)
     time64_t VALID_FROM,             // Default (0 or nullptr) == NOW
-    time64_t VALID_TO, // Default (0 or nullptr) == no expiry / cancel anytime
+    time64_t VALID_TO,               // Default (0 or nullptr) == no expiry / cancel anytime
+    bool     SPECIFY_ASSETS,         // This means asset type IDs must be provided for every named account.
+    bool     SPECIFY_PARTIES,        // This means Nym IDs must be provided for every party.
     String& strOutput) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
@@ -3376,6 +3378,10 @@ bool OT_API::Create_SmartContract(
                  "range.\n";
         return false;
     }
+    
+    pContract->specifyParties(SPECIFY_PARTIES);
+    pContract->specifyAssetTypes(SPECIFY_ASSETS);
+
     pContract->SignContract(*pNym);
     pContract->SaveContract();
     strOutput.Release();
@@ -3425,6 +3431,7 @@ bool OT_API::SmartContract_AddParty(
     const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                      // signing at this point is only to cause
                                      // a save.)
+    const String& PARTY_NYM_ID,//Optional. Some smart contracts require the party's Nym to be specified in advance.
     const String& PARTY_NAME, // The Party's NAME as referenced in the smart
                               // contract. (And the scripts...)
     const String& AGENT_NAME, // An AGENT will be added by default for this
@@ -3453,8 +3460,34 @@ bool OT_API::SmartContract_AddParty(
         return false;
     }
 
+    // New param PARTY_NYM_ID must either be present, or empty, based on
+    // arePartiesSpecified().
+    //
+    const char * szPartyNymID = nullptr;
+    
+    if (pContract->arePartiesSpecified())
+    {
+        if (!PARTY_NYM_ID.Exists())
+        {
+            otOut << __FUNCTION__ << ": Failure: Party Nym ID is empty, even though this "
+            "contract is configured to require a Party's NymID to appear on the contract. \n";
+            return false;
+        }
+        
+        szPartyNymID = PARTY_NYM_ID.Get();
+    }
+    else
+    {
+        if (PARTY_NYM_ID.Exists())
+        {
+            otOut << __FUNCTION__ << ": Failure: Party Nym ID was provided but erroneously so, since "
+            "this contract is NOT configured to require a Party's NymID when first adding the party.\n";
+            return false;
+        }
+    }
+    
     pParty = new OTParty(str_party_name.c_str(), true /*bIsOwnerNym*/,
-                         nullptr /*OwnerID not set until confirm*/,
+                         szPartyNymID,
                          str_agent_name.c_str(),
                          true); // bCreateAgent=false by default.
     OT_ASSERT(nullptr != pParty);
@@ -3561,8 +3594,40 @@ bool OT_API::SmartContract_AddAccount(
                  "party: " << str_party_name << " \n";
         return false;
     }
-    const String strAgentName, strAcctName(str_name.c_str()), strAcctID,
-        strInstrumentDefinitionID(str_instrument_definition_id.c_str());
+    // -----------------------------------
+    // Need to explicitly check pContract->areAssetTypesSpecified() and then
+    // mandate that the instrument definition ID must either be present, or not,
+    // based on that.
+    
+    const char * szAssetTypeID = nullptr;
+    
+    if (pContract->areAssetTypesSpecified())
+    {
+        if (str_instrument_definition_id.empty())
+        {
+            otOut << __FUNCTION__ << ": Failure: Asset Type ID is empty, even though this "
+            "contract is configured to require the Asset Types to appear on the contract. \n";
+            return false;
+        }
+        
+        szAssetTypeID = str_instrument_definition_id.c_str();
+    }
+    else
+    {
+        if (!str_instrument_definition_id.empty())
+        {
+            otOut << __FUNCTION__ << ": Failure: Asset Type ID was provided but erroneously so, since "
+            "this contract is NOT configured to require the Asset Types when first adding the account.\n";
+            return false;
+        }
+    }
+
+    
+    const String strAgentName, strAcctName(str_name.c_str()), strAcctID;
+    String strInstrumentDefinitionID;
+    
+    if (nullptr != szAssetTypeID)
+        strInstrumentDefinitionID.Set(szAssetTypeID);
 
     if (false ==
         pParty->AddAccount(strAgentName, strAcctName, strAcctID,
@@ -3723,6 +3788,7 @@ bool OT_API::SmartContract_ConfirmAccount(
               << str_name << " \n";
         return false;
     }
+    
     // the actual instrument definition ID
 
     const Identifier theExpectedInstrumentDefinitionID(
@@ -3731,12 +3797,13 @@ bool OT_API::SmartContract_ConfirmAccount(
                                                   // converting
                                                   // from a string.
     const Identifier& theActualInstrumentDefinitionID =
-        pAccount->GetInstrumentDefinitionID(); // the actual instrument
-                                               // definition ID,
-                                               // already an
-    // identifier, from the actual account.
+        pAccount->GetInstrumentDefinitionID(); // the actual instrument definition
+                                               // ID, already an identifier, from
+                                               // the actual account.
 
-    if (theExpectedInstrumentDefinitionID != theActualInstrumentDefinitionID) {
+    if (pContract->areAssetTypesSpecified() &&
+        (theExpectedInstrumentDefinitionID != theActualInstrumentDefinitionID))
+    {
         const String strInstrumentDefinitionID(theActualInstrumentDefinitionID);
         otOut << __FUNCTION__
               << ": Failed, since the instrument definition ID of the account ("
@@ -3746,6 +3813,7 @@ bool OT_API::SmartContract_ConfirmAccount(
               << ") according to this contract.\n";
         return false;
     }
+    
     // I'm leaving this here for now, since a party can only be a Nym for now
     // anyway (until I code entities.)
     // Therefore this account COULD ONLY be owned by that Nym anyway, and thus
@@ -3824,6 +3892,34 @@ bool OT_API::SmartContract_ConfirmAccount(
     return true;
 }
 
+bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
+{
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    
+    if (nullptr == pContract) {
+        otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
+        << THE_CONTRACT << "\n\n";
+        return false;
+    }
+
+    return pContract->arePartiesSpecified();
+}
+
+bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
+{
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    
+    if (nullptr == pContract) {
+        otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
+        << THE_CONTRACT << "\n\n";
+        return false;
+    }
+
+    return pContract->areAssetTypesSpecified();
+}
+
 bool OT_API::SmartContract_ConfirmParty(
     const String& THE_CONTRACT, // The smart contract, about to be changed by
                                 // this function.
@@ -3856,6 +3952,26 @@ bool OT_API::SmartContract_ConfirmParty(
               << ") doesn't exist, so how can you confirm it?\n";
         return false;
     }
+    
+    if (pContract->arePartiesSpecified())
+    {
+        bool bSuccessID = false;
+        const std::string partyNymID = pParty->GetNymID(&bSuccessID);
+
+        if (bSuccessID && !partyNymID.empty())
+        {
+            String strPartyNymID(partyNymID);
+            Identifier idParty(strPartyNymID);
+            
+            if (idParty != NYM_ID)
+            {
+                otOut << __FUNCTION__ << ": Failure: Party (" << str_party_name
+                << ") has an expected NymID that doesn't match the actual NymID.\n";
+                return false;
+            }
+        }
+    }
+    
     OTParty* pNewParty = new OTParty(
         pParty->GetPartyName(),
         *pNym, // party keeps an internal pointer to pNym from here on.

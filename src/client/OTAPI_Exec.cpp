@@ -5501,8 +5501,10 @@ std::string OTAPI_Exec::Create_SmartContract(
                                       // at this point32_t is only to cause a
                                       // save.)
     const time64_t& VALID_FROM,       // Default (0 or "") == NOW
-    const time64_t& VALID_TO) const   // Default (0 or "") == no expiry / cancel
-                                      // anytime
+    const time64_t& VALID_TO,         // Default (0 or "") == no expiry / cancel anytime
+    bool SPECIFY_ASSETS, // This means asset type IDs must be provided for every named account.
+    bool SPECIFY_PARTIES // This means Nym IDs must be provided for every party.
+    ) const
 {
     if (SIGNER_NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SIGNER_NYM_ID passed in!\n";
@@ -5524,11 +5526,37 @@ std::string OTAPI_Exec::Create_SmartContract(
     const bool& bCreated = OTAPI()->Create_SmartContract(
         theSignerNymID, tValidFrom, // Default (0 or "") == NOW
         tValidTo, // Default (0 or "") == no expiry / cancel anytime
+        SPECIFY_ASSETS,  // This means asset type IDs must be provided for every named account.
+        SPECIFY_PARTIES, // This means Nym IDs must be provided for every party.
         strOutput);
     if (!bCreated || !strOutput.Exists()) return "";
     // Success!
     //
     return strOutput.Get();
+}
+
+    
+    
+bool OTAPI_Exec::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return false;
+    }
+    const String strContract(THE_CONTRACT);
+
+    return OTAPI()->Smart_ArePartiesSpecified(strContract);
+}
+
+bool OTAPI_Exec::Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT) const
+{
+    if (THE_CONTRACT.empty()) {
+        otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
+        return false;
+    }
+    const String strContract(THE_CONTRACT);
+
+    return OTAPI()->Smart_AreAssetTypesSpecified(strContract);
 }
 
 // RETURNS:  the Smart Contract itself. (Or "".)
@@ -6184,6 +6212,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
     const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The signing
                                       // at this point32_t is only to cause a
                                       // save.)
+    const std::string& PARTY_NYM_ID,  // Required when the smart contract is configured to require parties to be specified. Otherwise must be empty.
     const std::string& PARTY_NAME,    // The Party's NAME as referenced in the
                                       // smart contract. (And the scripts...)
     const std::string& AGENT_NAME) const // An AGENT will be added by default
@@ -6211,7 +6240,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
         return "";
     }
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME),
-        strAgentName(AGENT_NAME);
+        strAgentName(AGENT_NAME), strPartyNymID(PARTY_NYM_ID);
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
@@ -6219,6 +6248,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
         strContract,    // The contract, about to have the bylaw added to it.
         theSignerNymID, // Use any Nym you wish here. (The signing at this
                         // point32_t is only to cause a save.)
+        strPartyNymID,
         strPartyName,   // The Party's NAME as referenced in the smart contract.
                         // (And the scripts...)
         strAgentName, // An AGENT will be added by default for this party. Need
@@ -6286,8 +6316,7 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
     const std::string& ACCT_NAME,     // The Account's name as referenced in the
                                       // smart contract
     const std::string& INSTRUMENT_DEFINITION_ID) const // Instrument Definition
-                                                       // ID for the
-                                                       // Account.
+                                                       // ID for the Account. (Optional.)
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";

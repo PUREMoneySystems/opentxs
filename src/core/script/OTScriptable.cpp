@@ -2380,7 +2380,7 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
 
 void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
 {
-    if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
+//    if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
 
         TagPtr pTag(new Tag("scriptableContract"));
 
@@ -2414,7 +2414,7 @@ void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
         }
 
         parent.add_tag(pTag);
-    }
+//    }
 }
 
 void OTScriptable::UpdateContents() // Before transmission or serialization,
@@ -3458,6 +3458,26 @@ bool OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
     return bReturnVal;
 }
 
+    
+bool OTScriptable::arePartiesSpecified() const
+{
+    return m_bSpecifyParties;
+}
+bool OTScriptable::areAssetTypesSpecified() const
+{
+    return m_bSpecifyInstrumentDefinitionID;
+}
+
+void OTScriptable::specifyParties(bool bNewState)
+{
+    m_bSpecifyParties = bNewState;
+}
+    
+void OTScriptable::specifyAssetTypes(bool bNewState)
+{
+    m_bSpecifyInstrumentDefinitionID = bNewState;
+}
+    
 void OTScriptable::Release_Scriptable()
 {
     // Go through the existing list of parties and bylaws at this point, and
