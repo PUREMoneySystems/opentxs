@@ -212,7 +212,7 @@ class OTSymmetricKey;
 // This is only the hard-coded default; it's also configurable in the opt file.
 #define OT_MASTER_KEY_TIMEOUT 300
 
-typedef std::map<std::string, std::shared_ptr<OTCachedKey>> mapOfCachedKeys;
+typedef std::map<std::string, std::shared_ptr<OTCachedKey> > mapOfCachedKeys;
 
 class OTCachedKey
 {

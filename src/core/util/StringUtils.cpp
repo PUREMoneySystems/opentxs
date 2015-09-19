@@ -88,11 +88,16 @@ char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
 
 std::string formatTimestamp(time64_t tt)
 {
+    char buf[255]="";
     struct tm tm;
-    time_t t = tt;
-    char buf[255];
-
+    // -------------
+#if defined(_WIN32) || defined(_WIN64)
+    if (0 ==_gmtime64_s(&tm, &tt))
+        strftime(buf, sizeof(buf), "%FT%T", &tm);
+#else
+    time_t t = tt; // Todo why go backwards here? Prefer time64_t.
     strftime(buf, sizeof(buf), "%FT%T", gmtime_r(&t, &tm));
+#endif
     return std::string(buf);
 }
 

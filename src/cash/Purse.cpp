@@ -703,7 +703,7 @@ void Purse::Release_Purse()
 {
     // This sets m_lTotalValue to 0 already.
     ReleaseTokens();
-    //    m_lTotalValue = 0;
+//  m_lTotalValue = 0;
 
     m_bPasswordProtected = false;
     m_bIsNymIDIncluded = false;
@@ -717,11 +717,11 @@ void Purse::Release_Purse()
         m_pSymmetricKey = nullptr;
     }
 
-    //    if (m_pCachedKey)
-    //    {
-    //        delete m_pCachedKey;
-    //        m_pCachedKey = nullptr;
-    //    }
+//  if (m_pCachedKey)
+//  {
+//      delete m_pCachedKey;
+//      m_pCachedKey = nullptr;
+//  }
 }
 
 void Purse::Release()
@@ -1185,7 +1185,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "noticed the pointer was ALREADY set! (I'm deleting old "
                      "one to make room, "
                      "and then allowing this one to load instead...)\n";
-            //          return (-1); // error condition
+//          return (-1); // error condition
 
             m_pCachedKey.reset();
         }

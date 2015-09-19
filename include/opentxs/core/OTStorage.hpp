@@ -658,7 +658,7 @@ EXPORT bool EraseValueByKey(std::string strFolder, std::string oneStr = "",
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
 protected:                                                                     \
-    std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+    std::deque<stlplus::simple_ptr_clone<name> > list_##name##s;               \
                                                                                \
 public:                                                                        \
     size_t Get##name##Count();                                                 \
@@ -672,7 +672,7 @@ public:                                                                        \
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
 protected:                                                                     \
-    std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+    std::deque<stlplus::simple_ptr_clone<name> > list_##name##s;               \
                                                                                \
 public:                                                                        \
     EXPORT size_t Get##name##Count();                                          \

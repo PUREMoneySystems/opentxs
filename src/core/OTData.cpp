@@ -47,25 +47,14 @@
 namespace opentxs
 {
 
-OTData::OTData()
-    : data_(nullptr)
-    , position_(0)
-    , size_(0)
-{
-}
+OTData::OTData() { }
 
 OTData::OTData(const OTData& source)
-    : data_(nullptr)
-    , position_(0)
-    , size_(0)
 {
     Assign(source);
 }
 
 OTData::OTData(const OTASCIIArmor& source)
-    : data_(nullptr)
-    , position_(0)
-    , size_(0)
 {
     if (source.Exists()) {
         source.GetData(*this);
@@ -73,9 +62,6 @@ OTData::OTData(const OTASCIIArmor& source)
 }
 
 OTData::OTData(const void* data, uint32_t size)
-    : data_(nullptr)
-    , position_(0)
-    , size_(0)
 {
     Assign(data, size);
 }
@@ -187,9 +173,14 @@ void OTData::Assign(const OTData& source)
     }
 }
 
-bool OTData::IsEmpty() const
+bool OTData::empty() const
 {
     return size_ < 1;
+}
+
+bool OTData::IsEmpty() const // Deprecated.
+{
+    return empty();
 }
 
 void OTData::Assign(const void* data, uint32_t size)

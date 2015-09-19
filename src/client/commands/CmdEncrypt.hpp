@@ -144,7 +144,7 @@ public:
     EXPORT CmdEncrypt();
     virtual ~CmdEncrypt();
 
-    EXPORT int32_t run(std::string mynym);
+    EXPORT int32_t run(std::string hisnym);
 
 protected:
     virtual int32_t runWithOptions();

@@ -123,16 +123,24 @@ public:
 public:
     static size_t safe_strlen(const char* s, size_t max);
 
-    EXPORT static int64_t StringToLong(const std::string& number);
+    EXPORT static std::string LongToString(const int64_t& lNumber);
+    EXPORT static std::string UlongToString(const uint64_t& uNumber);
 
-    EXPORT int64_t ToLong() const;
-
+    EXPORT static int64_t  StringToLong(const std::string& number);
     EXPORT static uint64_t StringToUlong(const std::string& number);
 
+    EXPORT int64_t  ToLong() const;
     EXPORT uint64_t ToUlong() const;
+
+    EXPORT static int32_t  StringToInt(const std::string& number);
+    EXPORT static uint32_t StringToUint(const std::string& number);
+
+    EXPORT int32_t  ToInt() const;
+    EXPORT uint32_t ToUint() const;
 
     EXPORT bool At(uint32_t index, char& c) const;
     EXPORT bool Exists() const;
+    EXPORT bool empty() const;
     EXPORT bool DecodeIfArmored(bool escapedIsAllowed = true);
     EXPORT uint32_t GetLength() const;
     EXPORT bool Compare(const char* compare) const;

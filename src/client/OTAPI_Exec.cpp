@@ -191,13 +191,7 @@ int64_t OTAPI_Exec::StringToLong(const std::string& strNumber) const
 
 std::string OTAPI_Exec::LongToString(const int64_t& lNumber) const
 {
-    std::string strNumber;
-    std::stringstream strstream;
-
-    strstream << lNumber;
-    strstream >> strNumber;
-
-    return strNumber;
+    return String::LongToString(lNumber);
 }
 
 uint64_t OTAPI_Exec::StringToUlong(const std::string& strNumber) const
@@ -207,13 +201,7 @@ uint64_t OTAPI_Exec::StringToUlong(const std::string& strNumber) const
 
 std::string OTAPI_Exec::UlongToString(const uint64_t& lNumber) const
 {
-    std::string strNumber;
-    std::stringstream strstream;
-
-    strstream << lNumber;
-    strstream >> strNumber;
-
-    return strNumber;
+    return String::UlongToString(lNumber);
 }
 
 /** Output to the screen (stderr.)

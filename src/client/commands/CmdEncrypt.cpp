@@ -47,9 +47,9 @@ using namespace std;
 CmdEncrypt::CmdEncrypt()
 {
     command = "encrypt";
-    args[0] = "--mynym <nym>";
+    args[0] = "--hisnym <nym>";
     category = catAdmin;
-    help = "Encrypt plaintext input using mynym's public key.";
+    help = "Encrypt plaintext input using hisnym's public key.";
 }
 
 CmdEncrypt::~CmdEncrypt()
@@ -58,12 +58,12 @@ CmdEncrypt::~CmdEncrypt()
 
 int32_t CmdEncrypt::runWithOptions()
 {
-    return run(getOption("mynym"));
+    return run(getOption("hisnym"));
 }
 
-int32_t CmdEncrypt::run(string mynym)
+int32_t CmdEncrypt::run(string hisnym)
 {
-    if (!checkNym("mynym", mynym)) {
+    if (!checkNym("hisnym", hisnym)) {
         return -1;
     }
 
@@ -72,7 +72,7 @@ int32_t CmdEncrypt::run(string mynym)
         return -1;
     }
 
-    string output = OTAPI_Wrap::Encrypt(mynym, input);
+    string output = OTAPI_Wrap::Encrypt(hisnym, input);
     if ("" == output) {
         otOut << "Error: cannot encrypt input.\n";
         return -1;

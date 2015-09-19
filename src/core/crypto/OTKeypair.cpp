@@ -332,12 +332,14 @@ bool OTKeypair::LoadPublicKeyFromCertFile(
                                                    pstrReason, pImportPassword);
 }
 
-bool OTKeypair::MakeNewKeypair(int32_t nBits)
+bool OTKeypair::MakeNewKeypair(int32_t nBits/*=1024*/)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
 
     OTLowLevelKeyData lowLevelData;
+    
+//    lowLevelData.bits = nBits;
 
     if (!lowLevelData.MakeNewKeypair(nBits)) {
         otErr << "OTKeypair::MakeNewKeypair"

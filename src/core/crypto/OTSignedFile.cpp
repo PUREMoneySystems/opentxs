@@ -263,11 +263,9 @@ void OTSignedFile::Release_SignedFile()
                                       // wrapping.
                                       // We can release this now.
 
-    //    m_strLocalDir.Release();            // We KEEP these, *not* release,
-    // because LoadContract()
-    //    m_strSignedFilename.Release();        // calls Release(), and these
-    // are our core values. We don't
-    // want to lose them when the file is loaded.
+//  m_strLocalDir.Release();          // We KEEP these, *not* release, because LoadContract()
+//  m_strSignedFilename.Release();    // calls Release(), and these are our core values. We
+                                      // don't want to lose them when the file is loaded.
 
     // Note: Additionally, neither does OTContract release m_strFilename here,
     // for the SAME reason.

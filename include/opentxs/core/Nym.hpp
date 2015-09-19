@@ -527,7 +527,9 @@ public:
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT bool SavePublicKey(const String& strPath) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
+protected: // Use SaveSignedNymfile if you want to save the Nym to local storage.
     EXPORT bool SavePseudonym(const char* szFoldername, const char* szFilename);
+public:
     EXPORT bool SavePseudonym(String& strNym);
     EXPORT bool SetIdentifierByPubkey();
     EXPORT bool CompareID(const Identifier& theIdentifier) const

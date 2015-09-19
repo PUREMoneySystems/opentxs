@@ -49,6 +49,8 @@
 #include <wordexp.h>
 #endif
 
+#include <sstream>
+
 namespace opentxs
 {
 
@@ -58,6 +60,33 @@ std::ostream& operator<<(std::ostream& os, const String& obj)
     return os;
 }
 
+    
+//static
+std::string String::LongToString(const int64_t& lNumber)
+{
+    std::string strNumber;
+    std::stringstream strstream;
+    
+    strstream << lNumber;
+    strstream >> strNumber;
+    
+    return strNumber;
+}
+
+//static
+std::string String::UlongToString(const uint64_t& uNumber)
+{
+    std::string strNumber;
+    std::stringstream strstream;
+    
+    strstream << uNumber;
+    strstream >> strNumber;
+    
+    return strNumber;
+}
+
+    
+    
 /*
  int32_t vsnprintf(char* str, size_t size, const char* format, va_list ap);
 
@@ -506,6 +535,55 @@ int64_t String::ToLong() const
 
     return String::StringToLong(str_number);
 }
+    
+    
+// static
+uint32_t String::StringToUint(const std::string& strNumber)
+{
+    if (strNumber.size() == 0) return 0;
+
+    uint32_t v = 0;
+    size_t i = 0;
+
+    for (; i < strNumber.size(); ++i) {
+        if (strNumber[i] < '0' || strNumber[i] > '9') break;
+        v = ((v * 10) + (strNumber[i] - '0'));
+    }
+    return ((0 == v) ? 0 : v);
+}
+
+// static
+int32_t String::StringToInt(const std::string& strNumber)
+{
+    if (strNumber.size() == 0) return 0;
+
+    int32_t v = 0;
+    size_t i = 0;
+
+    char sign = (strNumber[0] == '-' || strNumber[0] == '+')
+                    ? (++i, strNumber[0])
+                    : '+';
+
+    for (; i < strNumber.size(); ++i) {
+        if (strNumber[i] < '0' || strNumber[i] > '9') break;
+        v = ((v * 10) + (strNumber[i] - '0'));
+    }
+    return ((0 == v) ? 0 : ((sign == '-') ? -v : v));
+}
+
+uint32_t String::ToUint() const
+{
+    const std::string str_number(Get());
+
+    return String::StringToUint(str_number);
+}
+
+int32_t String::ToInt() const
+{
+    const std::string str_number(Get());
+
+    return String::StringToInt(str_number);
+}
 
 /*
  int64_t OTString::StringToLong(const std::string& strNumber)
@@ -833,9 +911,14 @@ bool String::At(uint32_t lIndex, char& c) const
         return false;
 }
 
-bool String::Exists(void) const
+bool String::empty(void) const
 {
-    return (nullptr != data_) ? true : false;
+    return (nullptr == data_) ? true : false;
+}
+
+bool String::Exists(void) const // Deprecated
+{
+    return !empty();
 }
 
 uint32_t String::GetLength(void) const
